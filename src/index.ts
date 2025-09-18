@@ -6,7 +6,7 @@ async function main() {
   console.log('🤖 Amazon Flex Slot Grabber');
   console.log('============================\n');
 
-  // Check if config exists
+  // Validate configuration
   if (!configExists()) {
     console.log('⚠️  No configuration found!');
     console.log('Please run the setup first to record your screen coordinates:');
@@ -17,22 +17,22 @@ async function main() {
   const config = loadConfig();
   const grabber = new AmazonFlexSlotGrabber(config);
 
-  // Display loaded configuration
-  console.log('📋 Loaded Configuration:');
-  console.log(`   Refresh Button: (${config.refreshButtonX}, ${config.refreshButtonY})`);
-  console.log(`   Search Area: (${config.searchArea.x}, ${config.searchArea.y}) ${config.searchArea.width}x${config.searchArea.height}`);
-  console.log(`   Schedule Button: (${config.scheduleButtonX}, ${config.scheduleButtonY})`);
-  console.log(`   Target Text: "${config.targetText}"`);
-  console.log(`   Interval: ${config.intervalMs}ms\n`);
+  // Show configuration
+  // console.log('📋 Loaded Configuration:');
+  // console.log(`   Refresh Button: (${config.refreshButtonX}, ${config.refreshButtonY})`);
+  // console.log(`   Search Area: (${config.searchArea.x}, ${config.searchArea.y}) ${config.searchArea.width}x${config.searchArea.height}`);
+  // console.log(`   Schedule Button: (${config.scheduleButtonX}, ${config.scheduleButtonY})`);
+  // console.log(`   Minimum Earnings: $${config.minEarnings.toFixed(2)}`);
+  // console.log(`   Interval: ${config.intervalMs}ms\n`);
 
   try {
     await grabber.initialize();
 
     console.log('🎯 IMPORTANT: Make sure Amazon Flex is open and visible');
     console.log('🛑 Press Ctrl+C to stop the program');
-    console.log('⏱️  Starting in 5 seconds...\n');
+    console.log('⏱️  Starting in 2 seconds...\n');
 
-    await sleep(5000);
+    await sleep(2000);
 
     await grabber.start();
 
@@ -43,7 +43,7 @@ async function main() {
   }
 }
 
-// Handle Ctrl+C gracefully
+// Handle interruption
 process.on('SIGINT', () => {
   console.log('\nStopping application...');
   process.exit(0);

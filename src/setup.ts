@@ -1,7 +1,6 @@
 import robot from 'robotjs';
 import { saveConfig } from './config';
 import { Config } from './types';
-import { sleep } from './utils';
 
 export class SetupRecorder {
   private config: Partial<Config> = {};
@@ -18,18 +17,18 @@ export class SetupRecorder {
 
     console.log('Instructions:');
     console.log('- Move your mouse to the specified location');
-    console.log('- Press SPACE to record the position');
-    console.log('- Press ESC to cancel\n');
+    console.log('- Press ENTER to record the position');
+    console.log('- Press Ctrl+C to cancel\n');
 
-    // Record refresh button
+    // Get coordinates
     await this.recordPosition('refresh button', (x, y) => {
       this.config.refreshButtonX = x;
       this.config.refreshButtonY = y;
     });
 
-    // Record search area
+    // Define search area
     console.log('\nNow we need to define the search area...');
-    let searchX1: number, searchY1: number, searchX2: number, searchY2: number;
+    let searchX1 = 0, searchY1 = 0, searchX2 = 0, searchY2 = 0;
 
     await this.recordPosition('TOP-LEFT corner of search area', (x, y) => {
       searchX1 = x;
@@ -48,16 +47,16 @@ export class SetupRecorder {
       height: Math.abs(searchY2 - searchY1)
     };
 
-    // Record schedule button
+    // Get schedule button
     await this.recordPosition('schedule button', (x, y) => {
       this.config.scheduleButtonX = x;
       this.config.scheduleButtonY = y;
     });
 
-    // Get target text and interval
+    // Set configuration
     await this.getTextualConfig();
 
-    // Save configuration
+    // Save config
     const finalConfig = this.config as Config;
     saveConfig(finalConfig);
 
@@ -66,31 +65,26 @@ export class SetupRecorder {
   }
 
   private async recordPosition(description: string, callback: (x: number, y: number) => void): Promise<void> {
-    console.log(`\nPosition your mouse over the ${description} and press SPACE...`);
+    const readline = require('readline');
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
 
     return new Promise((resolve) => {
-      const checkInput = () => {
-        const keys = robot.getPixelColor(0, 0); // Just to keep the robot active
-
-        if (robot.keyToggle('space', 'down')) {
-          const mouse = robot.getMousePos();
-          console.log(`✓ Recorded ${description} at: (${mouse.x}, ${mouse.y})`);
-          callback(mouse.x, mouse.y);
-
-          // Wait for key release
-          setTimeout(() => {
-            robot.keyToggle('space', 'up');
-            resolve();
-          }, 100);
-        } else if (robot.keyToggle('escape', 'down')) {
-          console.log('\nSetup cancelled.');
-          process.exit(0);
-        } else {
-          setTimeout(checkInput, 50);
+      console.log(`\nPosition your mouse over the ${description}`);
+      rl.question('Press ENTER when ready to record this position: ', () => {
+        const mouse = robot.getMousePos();
+        console.log(`✓ Recorded ${description} at: (${mouse.x}, ${mouse.y})`);
+        // Validate coordinates are within screen bounds
+        const screenSize = robot.getScreenSize();
+        if (mouse.x < 0 || mouse.x > screenSize.width || mouse.y < 0 || mouse.y > screenSize.height) {
+          console.log(`⚠️  Warning: Coordinates (${mouse.x}, ${mouse.y}) may be outside screen bounds`);
         }
-      };
-
-      checkInput();
+        callback(mouse.x, mouse.y);
+        rl.close();
+        resolve();
+      });
     });
   }
 
@@ -102,8 +96,8 @@ export class SetupRecorder {
     });
 
     return new Promise((resolve) => {
-      rl.question('\nEnter the target text to search for (e.g., "3 hr 30 min"): ', (targetText: string) => {
-        this.config.targetText = targetText || "3 hr 30 min";
+      rl.question('\nEnter minimum earnings to accept (e.g., 25 for $25.00): ', (minEarnings: string) => {
+        this.config.minEarnings = parseFloat(minEarnings) || 25;
 
         rl.question('Enter refresh interval in milliseconds (default: 1000): ', (interval: string) => {
           this.config.intervalMs = parseInt(interval) || 1000;

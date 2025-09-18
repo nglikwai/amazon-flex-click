@@ -1,7 +1,10 @@
-import { Config } from './types';
-import { clickPosition, sleep } from './utils';
-import { ScreenshotService, OCRService } from './services';
+import { Config } from "./types";
+import { clickPosition, sleep } from "./utils";
+import { parseEarnings, formatEarnings } from "./utils/earnings";
+import { ScreenshotService, OCRService } from "./services";
+import { getCurrentTimeMMSS } from "./utils/time";
 
+// Amazon Flex Slot Grabber
 export class AmazonFlexSlotGrabber {
   private config: Config;
   private ocrService: OCRService;
@@ -12,75 +15,113 @@ export class AmazonFlexSlotGrabber {
     this.ocrService = new OCRService();
   }
 
+  // Initialize the OCR service for text detection
   async initialize(): Promise<void> {
     await this.ocrService.initialize();
   }
 
+  // Clean up resources when shutting down
   async cleanup(): Promise<void> {
     await this.ocrService.cleanup();
   }
 
+  // Check if there's a slot with earnings >= minimum threshold
   async checkForSlot(): Promise<boolean> {
-    try {
-      const screenshot = await ScreenshotService.takeScreenshot();
-      const text = await this.ocrService.detectText(screenshot);
+    // Take screenshot of the search area only for better accuracy
+    console.log(getCurrentTimeMMSS(), " taking region screenshot...");
+    const screenshot = await ScreenshotService.takeRegionScreenshot(
+      this.config.searchArea.x,
+      this.config.searchArea.y,
+      this.config.searchArea.width,
+      this.config.searchArea.height
+    );
 
-      console.log('Scanning for slots...');
+    // Extract text from the screenshot using OCR
+    console.log(getCurrentTimeMMSS(), " detecting text...");
+    const text = await this.ocrService.detectText(screenshot);
 
-      if (text.toLowerCase().includes(this.config.targetText.toLowerCase())) {
-        console.log(`Found target slot: ${this.config.targetText}`);
-        return true;
-      }
+    console.log(getCurrentTimeMMSS(), " Scanning for slots...");
 
-      return false;
-    } catch (error) {
-      console.error('Error checking for slot:', error);
-      return false;
+    // Parse text to find the highest dollar amount (e.g., $45.50, $25.00)
+    const detectedEarnings = parseEarnings(text);
+
+    console.log(getCurrentTimeMMSS(), " detectedEarnings: ", detectedEarnings);
+    // Check if earnings meet our minimum threshold
+    if (detectedEarnings >= this.config.minEarnings) {
+      console.log(
+        getCurrentTimeMMSS(),
+        ` ✅ Found suitable slot: ${formatEarnings(detectedEarnings)} `
+      );
+      return true;
+    } else if (detectedEarnings > 0) {
+      console.log(
+        getCurrentTimeMMSS(),
+        ` 💰 Found slot: ${formatEarnings(detectedEarnings)}`
+      );
     }
+
+    return false;
   }
 
+  // Attempt to grab/schedule a slot that was found
   async grabSlot(): Promise<boolean> {
-    console.log('Attempting to grab slot...');
+    console.log("Attempting to grab slot...");
 
     try {
-      const centerX = this.config.searchArea.x + this.config.searchArea.width / 2;
-      const centerY = this.config.searchArea.y + this.config.searchArea.height / 2;
+      // Calculate center of search area where the slot should be
+      const centerX =
+        this.config.searchArea.x + this.config.searchArea.width / 2;
+      const centerY =
+        this.config.searchArea.y + this.config.searchArea.height / 2;
 
+      // Click on the slot to open details
       clickPosition(centerX, centerY);
 
-      await sleep(2000);
+      // Wait for detail page to load
+      await sleep(300);
 
-      clickPosition(this.config.scheduleButtonX, this.config.scheduleButtonY);
+      // Click the schedule button to book the slot
+      console.log(getCurrentTimeMMSS(), " clicked on schedule button!");
+      // clickPosition(this.config.scheduleButtonX, this.config.scheduleButtonY);
 
-      await sleep(2000);
+      // Wait for booking response
+      await sleep(1000);
 
+      // Verify if booking was successful by checking the page content
       const resultImg = await ScreenshotService.takeScreenshot();
       const resultText = await this.ocrService.detectText(resultImg);
 
-      if (resultText.toLowerCase().includes('scheduled')) {
-        console.log('✅ Successfully scheduled the slot!');
+      if (resultText.toLowerCase().includes("scheduled")) {
+        console.log("✅ Successfully scheduled the slot!");
         return true;
       } else {
-        console.log('❌ Failed to schedule - slot may have been taken by someone else');
+        console.log(
+          "❌ Failed to schedule - slot may have been taken by someone else"
+        );
         return false;
       }
-
     } catch (error) {
-      console.error('Error during slot grab:', error);
+      console.error("Error during slot grab:", error);
       return false;
     }
   }
 
   async start(): Promise<void> {
-    console.log('Starting Amazon Flex slot grabber...');
-    console.log(`Refresh button position: (${this.config.refreshButtonX}, ${this.config.refreshButtonY})`);
-    console.log(`Target text: "${this.config.targetText}"`);
+    console.log("Starting Amazon Flex slot grabber...");
+    console.log(
+      `Refresh button position: (${this.config.refreshButtonX}, ${this.config.refreshButtonY})`
+    );
+    console.log(`Minimum earnings: ${formatEarnings(this.config.minEarnings)}`);
     console.log(`Interval: ${this.config.intervalMs}ms`);
 
     this.isRunning = true;
 
     while (this.isRunning) {
       try {
+        console.log(
+          "\x1b[32m%s\x1b[0m",
+          `${getCurrentTimeMMSS()}, clicked on refresh button!`
+        );
         clickPosition(this.config.refreshButtonX, this.config.refreshButtonY);
 
         await sleep(500);
@@ -88,29 +129,27 @@ export class AmazonFlexSlotGrabber {
         const slotFound = await this.checkForSlot();
 
         if (slotFound) {
-          console.log('🎯 Target slot found! Attempting to grab...');
           const success = await this.grabSlot();
 
           if (success) {
-            console.log('🎉 Slot successfully scheduled! Stopping...');
+            console.log("🎉 Slot successfully scheduled! Stopping...");
             this.stop();
             break;
           } else {
-            console.log('🔄 Grab failed, continuing to search...');
+            console.log("🔄 Grab failed, continuing to search...");
           }
         }
 
         await sleep(this.config.intervalMs);
-
       } catch (error) {
-        console.error('Error in main loop:', error);
+        console.error("Error in main loop:", error);
         await sleep(1000);
       }
     }
   }
 
   stop(): void {
-    console.log('Stopping slot grabber...');
+    console.log("Stopping slot grabber...");
     this.isRunning = false;
   }
 }

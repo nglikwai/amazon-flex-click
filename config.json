@@ -1,14 +1,14 @@
 {
-  "refreshButtonX": 2759,
-  "refreshButtonY": 970,
+  "refreshButtonX": 1590,
+  "refreshButtonY": 963,
   "searchArea": {
-    "x": 2548,
-    "y": 312,
-    "width": 398,
-    "height": 99
+    "x": 1637,
+    "y": 340,
+    "width": 68,
+    "height": 28
   },
-  "scheduleButtonX": 2884,
-  "scheduleButtonY": 967,
-  "targetText": "3 hr 30 min",
+  "scheduleButtonX": 1651,
+  "scheduleButtonY": 962,
+  "minEarnings": 25,
   "intervalMs": 1000
 }

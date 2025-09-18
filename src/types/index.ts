@@ -9,6 +9,6 @@ export interface Config {
   };
   scheduleButtonX: number;
   scheduleButtonY: number;
-  targetText: string;
+  minEarnings: number;
   intervalMs: number;
 }
