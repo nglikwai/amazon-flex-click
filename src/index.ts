@@ -10,7 +10,7 @@ async function main() {
   if (!configExists()) {
     console.log('⚠️  No configuration found!');
     console.log('Please run the setup first to record your screen coordinates:');
-    console.log('npm run setup\n');
+    console.log('node ./disk/setup.js\n');
     return;
   }
 

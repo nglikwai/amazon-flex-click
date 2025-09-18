@@ -1,19 +1,19 @@
 {
-  "refreshButtonX": 1458,
-  "refreshButtonY": 980,
+  "refreshButtonX": 1423,
+  "refreshButtonY": 1028,
   "searchArea": {
-    "x": 1574,
-    "y": 370,
-    "width": 73,
-    "height": 63
+    "x": 1561,
+    "y": 374,
+    "width": 65,
+    "height": 62
   },
-  "scheduleButtonX": 1553,
-  "scheduleButtonY": 969,
+  "scheduleButtonX": 1519,
+  "scheduleButtonY": 653,
   "appWindow": {
-    "x": 1236,
-    "y": 212,
-    "width": 421,
-    "height": 145
+    "x": 1359,
+    "y": 409,
+    "width": 222,
+    "height": 203
   },
   "minEarnings": 59
 }

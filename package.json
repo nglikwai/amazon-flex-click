@@ -5,9 +5,10 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "ts-node src/index.ts",
+    "start": "node ./dist/index",
     "dev": "ts-node src/index.ts",
-    "setup": "ts-node src/setup.ts"
+    "setup:dev": "ts-node src/setup.ts",
+    "setup":  "node ./dist/setup"
   },
   "dependencies": {
     "desktop-screenshot": "^0.1.1",
