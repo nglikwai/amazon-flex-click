@@ -36,9 +36,9 @@ export class AmazonFlexSlotGrabber {
       this.config.searchArea.height
     );
 
-    // Extract text from the screenshot using OCR
-    console.log(getCurrentTimeMMSS(), " detecting text...");
-    const text = await this.ocrService.detectText(screenshot);
+    // Extract numbers from the screenshot using OCR
+    console.log(getCurrentTimeMMSS(), " detecting numbers...");
+    const text = await this.ocrService.detectNumbers(screenshot);
 
     console.log(getCurrentTimeMMSS(), " Scanning for slots...");
 
@@ -78,27 +78,36 @@ export class AmazonFlexSlotGrabber {
       clickPosition(centerX, centerY);
 
       // Wait for detail page to load
-      await sleep(300);
+      await sleep(200);
 
       // Click the schedule button to book the slot
       console.log(getCurrentTimeMMSS(), " clicked on schedule button!");
-      // clickPosition(this.config.scheduleButtonX, this.config.scheduleButtonY);
+      clickPosition(this.config.scheduleButtonX, this.config.scheduleButtonY);
 
       // Wait for booking response
       await sleep(1000);
 
-      // Verify if booking was successful by checking the page content
-      const resultImg = await ScreenshotService.takeScreenshot();
+      // Verify if booking was successful by checking the app window content
+      const resultImg = await ScreenshotService.takeRegionScreenshot(
+        this.config.appWindow.x,
+        this.config.appWindow.y,
+        this.config.appWindow.width,
+        this.config.appWindow.height
+      );
       const resultText = await this.ocrService.detectText(resultImg);
 
-      if (resultText.toLowerCase().includes("scheduled")) {
-        console.log("✅ Successfully scheduled the slot!");
-        return true;
-      } else {
+      if (resultText.toLowerCase().includes("block unavailable")) {
         console.log(
-          "❌ Failed to schedule - slot may have been taken by someone else"
+          getCurrentTimeMMSS(),
+          " ❌ Block Unavailable - Someone else reserved that block."
         );
         return false;
+      } else {
+        console.log(
+          getCurrentTimeMMSS(),
+          " ✅ Successfully scheduled the slot!"
+        );
+        return true;
       }
     } catch (error) {
       console.error("Error during slot grab:", error);
@@ -135,12 +144,10 @@ export class AmazonFlexSlotGrabber {
             console.log("🎉 Slot successfully scheduled! Stopping...");
             this.stop();
             break;
-          } else {
-            console.log("🔄 Grab failed, continuing to search...");
           }
         }
 
-        await sleep(this.config.intervalMs);
+        await sleep(350);
       } catch (error) {
         console.error("Error in main loop:", error);
         await sleep(1000);

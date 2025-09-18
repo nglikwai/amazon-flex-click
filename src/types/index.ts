@@ -9,6 +9,12 @@ export interface Config {
   };
   scheduleButtonX: number;
   scheduleButtonY: number;
+  appWindow: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
   minEarnings: number;
   intervalMs: number;
 }

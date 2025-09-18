@@ -17,14 +17,6 @@ async function main() {
   const config = loadConfig();
   const grabber = new AmazonFlexSlotGrabber(config);
 
-  // Show configuration
-  // console.log('📋 Loaded Configuration:');
-  // console.log(`   Refresh Button: (${config.refreshButtonX}, ${config.refreshButtonY})`);
-  // console.log(`   Search Area: (${config.searchArea.x}, ${config.searchArea.y}) ${config.searchArea.width}x${config.searchArea.height}`);
-  // console.log(`   Schedule Button: (${config.scheduleButtonX}, ${config.scheduleButtonY})`);
-  // console.log(`   Minimum Earnings: $${config.minEarnings.toFixed(2)}`);
-  // console.log(`   Interval: ${config.intervalMs}ms\n`);
-
   try {
     await grabber.initialize();
 

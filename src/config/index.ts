@@ -2,7 +2,7 @@ import { Config } from '../types';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const CONFIG_PATH = path.join(process.cwd(), 'config.json');
+const CONFIG_PATH = path.join(__dirname, '../..', 'config.json');
 
 export function loadConfig(): Config {
   if (!fs.existsSync(CONFIG_PATH)) {
