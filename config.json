@@ -1,0 +1,14 @@
+{
+  "refreshButtonX": 2759,
+  "refreshButtonY": 970,
+  "searchArea": {
+    "x": 2548,
+    "y": 312,
+    "width": 398,
+    "height": 99
+  },
+  "scheduleButtonX": 2884,
+  "scheduleButtonY": 967,
+  "targetText": "3 hr 30 min",
+  "intervalMs": 1000
+}

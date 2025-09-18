@@ -1,0 +1,30 @@
+{
+  "name": "amazon-flex-slot-grabber",
+  "version": "1.0.0",
+  "description": "Automated Amazon Flex slot grabber for macOS",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "ts-node src/index.ts",
+    "dev": "ts-node src/index.ts",
+    "setup": "ts-node src/setup.ts"
+  },
+  "dependencies": {
+    "robotjs": "^0.6.0",
+    "screenshot-desktop": "^1.15.0",
+    "tesseract.js": "^5.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/screenshot-desktop": "^1.15.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "automation",
+    "macos",
+    "amazon-flex"
+  ],
+  "author": "",
+  "license": "MIT"
+}
