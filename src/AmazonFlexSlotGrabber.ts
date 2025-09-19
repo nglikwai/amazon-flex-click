@@ -28,7 +28,7 @@ export class AmazonFlexSlotGrabber {
   // Check if there's a slot with earnings >= minimum threshold
   async checkForSlot(): Promise<boolean> {
     // Take screenshot of the search area only for better accuracy
-    console.log(getCurrentTimeMMSS(), " taking region screenshot...");
+    // console.log(getCurrentTimeMMSS(), " taking region screenshot...");
     const screenshot = await ScreenshotService.takeRegionScreenshot(
       this.config.searchArea.x,
       this.config.searchArea.y,
@@ -37,20 +37,20 @@ export class AmazonFlexSlotGrabber {
     );
 
     // Extract numbers from the screenshot using OCR
-    console.log(getCurrentTimeMMSS(), " detecting numbers...");
+    // console.log(getCurrentTimeMMSS(), " detecting numbers...");
     const text = await this.ocrService.detectNumbers(screenshot);
 
-    console.log(getCurrentTimeMMSS(), " Scanning for slots...");
+    // console.log(getCurrentTimeMMSS(), " Scanning for slots...");
 
     // Parse text to find the highest dollar amount (e.g., $45.50, $25.00)
     const detectedEarnings = parseEarnings(text);
 
-    console.log(getCurrentTimeMMSS(), " detectedEarnings: ", detectedEarnings);
+    // console.log(getCurrentTimeMMSS(), " detectedEarnings: ", detectedEarnings);
     // Check if earnings meet our minimum threshold
     if (detectedEarnings >= this.config.minEarnings) {
       console.log(
         getCurrentTimeMMSS(),
-        ` ✅ Found suitable slot: ${formatEarnings(detectedEarnings)} `
+        ` ✅ Found matched slot: ${formatEarnings(detectedEarnings)} `
       );
       return true;
     } else if (detectedEarnings > 0) {
@@ -78,7 +78,7 @@ export class AmazonFlexSlotGrabber {
       clickPosition(centerX, centerY);
 
       // Wait for detail page to load
-      await sleep(200);
+      await sleep(550);
 
       // Click the schedule button to book the slot
       console.log(getCurrentTimeMMSS(), " clicked on schedule button!");
@@ -129,7 +129,7 @@ export class AmazonFlexSlotGrabber {
       try {
         console.log(
           "\x1b[32m%s\x1b[0m",
-          `${getCurrentTimeMMSS()}, clicked on refresh button!`
+          `${getCurrentTimeMMSS()}, refreshing!`
         );
         clickPosition(this.config.refreshButtonX, this.config.refreshButtonY);
 
