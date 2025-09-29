@@ -17,4 +17,5 @@ export interface Config {
   };
   minEarnings: number;
   intervalMs: number;
+  detailPageLoadMs: number;
 }

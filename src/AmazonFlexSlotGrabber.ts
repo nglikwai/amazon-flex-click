@@ -78,7 +78,7 @@ export class AmazonFlexSlotGrabber {
       clickPosition(centerX, centerY);
 
       // Wait for detail page to load
-      await sleep(550);
+      await sleep(this.config.detailPageLoadMs);
 
       // Click the schedule button to book the slot
       console.log(getCurrentTimeMMSS(), " clicked on schedule button!");
