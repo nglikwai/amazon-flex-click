@@ -1,13 +1,23 @@
-# Amazon Flex Slot Grabber
+# Amazon Flex Slotter
 
-An automated TypeScript application for macOS that helps grab Amazon Flex delivery slots by continuously monitoring for available slots and clicking them automatically.
+An automated Electron desktop application for macOS that helps grab Amazon Flex delivery slots by continuously monitoring for available slots and clicking them automatically.
+
+## 🚀 Quick Start
+
+```bash
+npm start
+```
+
+See [START.md](./START.md) for detailed launch instructions and first-time setup guide.
 
 ## Features
 
-- Automatically clicks refresh button every 1 second
-- Uses OCR to detect "3 hours 30 minutes" slots
-- Automatically clicks on detected slots and schedule button
-- Configurable screen positions and search areas
+- **Modern Desktop UI** - Clean, intuitive Electron interface with dark theme
+- **Real-time Status Display** - Visual indicators for running, stopped, success, and error states
+- **Easy Configuration** - Built-in settings panel for all configuration options
+- **OCR Detection** - Uses Tesseract.js to detect earnings amounts
+- **Automatic Scheduling** - Automatically clicks on slots and schedule button
+- **Configurable** - Customizable screen positions, search areas, and minimum earnings
 
 ## Prerequisites
 
@@ -52,34 +62,69 @@ An automated TypeScript application for macOS that helps grab Amazon Flex delive
 
 ## Usage
 
-1. **Open Amazon Flex** in your browser and navigate to the slots page
-2. **Position the window** so refresh button and slots are visible
-3. **Run the grabber:**
+1. **Launch the app:**
    ```bash
    npm start
    ```
-4. **The app will:**
-   - Click refresh button every second
-   - Scan for "3 hours 30 minutes" text
-   - Automatically click slot and schedule button when found
-   - Stop after attempting to grab a slot
+
+2. **First-time setup:**
+   - Click the **Settings** button in the bottom panel
+   - Configure all the required coordinates:
+     - **Refresh Button Position** - Where the refresh button is located
+     - **Schedule Button Position** - Where the schedule/accept button is located
+     - **Search Area** - The region where slot earnings are displayed
+     - **App Window** - The Amazon Flex app window area
+     - **Minimum Earnings** - The minimum dollar amount to accept
+     - **Detail Page Load Time** - How long to wait for detail page to load (ms)
+   - Click **Save Settings** when done
+
+3. **Open Amazon Flex** and position the window so it's visible
+
+4. **Start monitoring:**
+   - Click the **Start** button in the app
+   - The status display will show "Running" with a green indicator
+   - The app will continuously monitor for slots meeting your minimum earnings
+
+5. **The app will automatically:**
+   - Click the refresh button periodically
+   - Scan for slot earnings using OCR
+   - Click on slots that meet your minimum earnings threshold
+   - Attempt to schedule/accept the slot
+   - Display success or error status
+
+6. **Stop monitoring:**
+   - Click the **Stop** button to halt the bot
+   - Or press **ESC** key on your keyboard
+   - The app will also auto-stop after successfully grabbing a slot
 
 ## Scripts
 
-- `npm install` - Install dependencies
-- `npm run build` - Compile TypeScript
-- `npm start` - Build and run the app
-- `npm run dev` - Run with ts-node for development
-- `npm run setup` - Run position capture tool
+- `npm install` - Install dependencies and rebuild native modules
+- `npm run build` - Compile TypeScript and copy static assets
+- `npm start` - Build and launch the Electron app
+- `npm run dev` - Build and launch in development mode
+- `npm run dev:cli` - Run the CLI version (legacy)
+- `npm run setup:dev` - Run position capture tool (CLI helper)
+- `npm run pack` - Package the app for distribution (unpacked)
+- `npm run dist` - Build distributable app (.dmg and .zip)
 
 ## Configuration
 
-Edit the `config` object in `src/index.ts`:
+Configuration is managed through the app's built-in Settings panel. The settings are saved to `config.json` in the project root.
 
-- `refreshButtonX/Y` - Exact pixel coordinates of refresh button
-- `searchArea` - Rectangle where slots appear
-- `targetText` - Text to search for (e.g., "3 hours 30 minutes")
-- `intervalMs` - Milliseconds between refresh clicks
+**Available Settings:**
+- `refreshButtonX/Y` - Exact pixel coordinates of the refresh button
+- `scheduleButtonX/Y` - Exact pixel coordinates of the schedule/accept button
+- `searchArea` - Rectangle coordinates where slot earnings are displayed (x, y, width, height)
+- `appWindow` - Amazon Flex app window coordinates (x, y, width, height)
+- `minEarnings` - Minimum dollar amount to accept (e.g., 59 for $59)
+- `detailPageLoadMs` - Milliseconds to wait for detail page to load (default: 600)
+
+**Alternative Configuration:**
+You can also manually edit `config.json` or use the legacy CLI setup tool:
+```bash
+npm run setup:dev
+```
 
 ## Important Notes
 

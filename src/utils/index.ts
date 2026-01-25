@@ -1,4 +1,4 @@
-import robot from 'robotjs';
+import robot from '@jitsi/robotjs';
 
 export function clickPosition(x: number, y: number): void {
   robot.moveMouse(x, y);

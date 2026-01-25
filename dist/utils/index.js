@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DisplayManager = void 0;
 exports.clickPosition = clickPosition;
 exports.sleep = sleep;
-const robotjs_1 = __importDefault(require("robotjs"));
+const robotjs_1 = __importDefault(require("@jitsi/robotjs"));
 function clickPosition(x, y) {
     robotjs_1.default.moveMouse(x, y);
     robotjs_1.default.mouseClick();

@@ -1,5 +1,5 @@
 import screenshot from 'screenshot-desktop';
-import robot from 'robotjs';
+import robot from '@jitsi/robotjs';
 
 export interface DisplayInfo {
   logicalWidth: number;

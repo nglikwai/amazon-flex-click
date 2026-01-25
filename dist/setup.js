@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SetupRecorder = void 0;
-const robotjs_1 = __importDefault(require("robotjs"));
+const robotjs_1 = __importDefault(require("@jitsi/robotjs"));
 const config_1 = require("./config");
 class SetupRecorder {
     constructor() {
@@ -57,6 +57,13 @@ class SetupRecorder {
         };
         // 5. Minimum earnings
         await this.getTextualConfig();
+        // Set default values if not provided
+        if (!this.config.intervalMs) {
+            this.config.intervalMs = 500;
+        }
+        if (!this.config.detailPageLoadMs) {
+            this.config.detailPageLoadMs = 600;
+        }
         // Save config
         const finalConfig = this.config;
         (0, config_1.saveConfig)(finalConfig);
@@ -94,8 +101,11 @@ class SetupRecorder {
         return new Promise((resolve) => {
             rl.question("\nMinimum earnings (e.g., 25 for $25.00): ", (minEarnings) => {
                 this.config.minEarnings = parseFloat(minEarnings) || 25;
-                rl.close();
-                resolve();
+                rl.question("\nDetail page load time in ms (default: 600): ", (loadTime) => {
+                    this.config.detailPageLoadMs = parseInt(loadTime) || 600;
+                    rl.close();
+                    resolve();
+                });
             });
         });
     }

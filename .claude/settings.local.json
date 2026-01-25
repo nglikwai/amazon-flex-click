@@ -8,7 +8,8 @@
       "Bash(npm uninstall:*)",
       "Bash(npm start)",
       "Bash(ts-node:*)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(npx electron-rebuild:*)"
     ],
     "deny": [],
     "ask": []

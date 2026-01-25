@@ -1,4 +1,4 @@
-import robot from "robotjs";
+import robot from "@jitsi/robotjs";
 import { saveConfig } from "./config";
 import { Config } from "./types";
 
@@ -70,6 +70,14 @@ export class SetupRecorder {
     // 5. Minimum earnings
     await this.getTextualConfig();
 
+    // Set default values if not provided
+    if (!this.config.intervalMs) {
+      this.config.intervalMs = 500;
+    }
+    if (!this.config.detailPageLoadMs) {
+      this.config.detailPageLoadMs = 600;
+    }
+
     // Save config
     const finalConfig = this.config as Config;
     saveConfig(finalConfig);
@@ -121,8 +129,15 @@ export class SetupRecorder {
         "\nMinimum earnings (e.g., 25 for $25.00): ",
         (minEarnings: string) => {
           this.config.minEarnings = parseFloat(minEarnings) || 25;
-          rl.close();
-          resolve();
+
+          rl.question(
+            "\nDetail page load time in ms (default: 600): ",
+            (loadTime: string) => {
+              this.config.detailPageLoadMs = parseInt(loadTime) || 600;
+              rl.close();
+              resolve();
+            }
+          );
         }
       );
     });

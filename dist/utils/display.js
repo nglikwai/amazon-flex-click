@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DisplayManager = void 0;
 const screenshot_desktop_1 = __importDefault(require("screenshot-desktop"));
-const robotjs_1 = __importDefault(require("robotjs"));
+const robotjs_1 = __importDefault(require("@jitsi/robotjs"));
 class DisplayManager {
     static async getDisplayInfo() {
         if (this.cachedDisplayInfo) {

@@ -36,33 +36,70 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.loadConfig = loadConfig;
 exports.saveConfig = saveConfig;
 exports.configExists = configExists;
+exports.getDefaultConfig = getDefaultConfig;
+exports.resetToDefault = resetToDefault;
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
-const CONFIG_PATH = path.join(__dirname, '../..', 'config.json');
+const electron_1 = require("electron");
+// Default configuration - used for first-time users
+const DEFAULT_CONFIG = {
+    refreshButtonX: 1300,
+    refreshButtonY: 989,
+    scheduleButtonX: 1290,
+    scheduleButtonY: 957,
+    searchArea: {
+        x: 1420,
+        y: 400,
+        width: 62,
+        height: 27
+    },
+    appWindow: {
+        x: 1085,
+        y: 240,
+        width: 431,
+        height: 123
+    },
+    minEarnings: 60,
+    intervalMs: 500,
+    detailPageLoadMs: 1000
+};
+// Get the user data directory (persists across app updates)
+function getUserConfigPath() {
+    const userDataPath = electron_1.app.getPath('userData');
+    return path.join(userDataPath, 'config.json');
+}
 function loadConfig() {
-    if (!fs.existsSync(CONFIG_PATH)) {
-        console.error('❌ Config file not found!');
-        console.log('Please run setup first: npm run setup');
-        console.log('This will help you record the screen coordinates.');
-        process.exit(1);
+    const configPath = getUserConfigPath();
+    // If user config doesn't exist, create it with default values
+    if (!fs.existsSync(configPath)) {
+        console.log('📝 First time run - creating default config...');
+        saveConfig(DEFAULT_CONFIG);
+        console.log('✅ Default config created at:', configPath);
+        return DEFAULT_CONFIG;
     }
     try {
-        const configData = fs.readFileSync(CONFIG_PATH, 'utf8');
+        const configData = fs.readFileSync(configPath, 'utf8');
         const config = JSON.parse(configData);
-        console.log('✅ Config loaded successfully');
+        console.log('✅ Config loaded successfully from:', configPath);
         return config;
     }
     catch (error) {
         console.error('❌ Error reading config file:', error);
-        console.log('Please run setup again: npm run setup');
-        process.exit(1);
+        console.log('📝 Using default config instead');
+        return DEFAULT_CONFIG;
     }
 }
 function saveConfig(config) {
     try {
+        const configPath = getUserConfigPath();
+        const userDataPath = electron_1.app.getPath('userData');
+        // Ensure the userData directory exists
+        if (!fs.existsSync(userDataPath)) {
+            fs.mkdirSync(userDataPath, { recursive: true });
+        }
         const configData = JSON.stringify(config, null, 2);
-        fs.writeFileSync(CONFIG_PATH, configData, 'utf8');
-        console.log('✅ Configuration saved to config.json');
+        fs.writeFileSync(configPath, configData, 'utf8');
+        console.log('✅ Configuration saved to:', configPath);
     }
     catch (error) {
         console.error('❌ Error saving config file:', error);
@@ -70,5 +107,13 @@ function saveConfig(config) {
     }
 }
 function configExists() {
-    return fs.existsSync(CONFIG_PATH);
+    const configPath = getUserConfigPath();
+    return fs.existsSync(configPath);
+}
+function getDefaultConfig() {
+    return { ...DEFAULT_CONFIG };
+}
+function resetToDefault() {
+    saveConfig(DEFAULT_CONFIG);
+    console.log('✅ Configuration reset to defaults');
 }
