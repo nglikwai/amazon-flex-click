@@ -4,9 +4,9 @@ import { DisplayManager } from "../utils/display";
 import * as fs from "fs";
 import * as path from "path";
 
-// Minimum dimensions for OCR to work reliably
-const MIN_OCR_WIDTH = 60;
-const MIN_OCR_HEIGHT = 27;
+// Minimum dimensions for OCR to work reliably - increased for smaller phone screens
+const MIN_OCR_WIDTH = 120;
+const MIN_OCR_HEIGHT = 54;
 
 // Debug directory for saving screenshots
 const DEBUG_DIR = "./tmp/debug-screenshots";
@@ -70,31 +70,40 @@ export class ScreenshotService {
       height: scaled.height,
     });
 
-    // If the cropped region is smaller than minimum OCR dimensions, upscale it
-    if (scaled.width < MIN_OCR_WIDTH || scaled.height < MIN_OCR_HEIGHT) {
-      // Calculate scale factor to meet minimum dimensions
-      const scaleX = scaled.width < MIN_OCR_WIDTH ? MIN_OCR_WIDTH / scaled.width : 1;
-      const scaleY = scaled.height < MIN_OCR_HEIGHT ? MIN_OCR_HEIGHT / scaled.height : 1;
-      const scale = Math.max(scaleX, scaleY);
+    // Save original crop for debugging
+    const originalBuffer = await sharpInstance
+      .png({ quality: 100, compressionLevel: 0 })
+      .toBuffer();
+    this.saveDebugScreenshot(originalBuffer, 'original');
 
-      const newWidth = Math.round(scaled.width * scale);
-      const newHeight = Math.round(scaled.height * scale);
+    // Always upscale for better OCR on small phone screens (2x minimum)
+    const MIN_SCALE = 2.5;
+    const scaleX = scaled.width < MIN_OCR_WIDTH ? MIN_OCR_WIDTH / scaled.width : MIN_SCALE;
+    const scaleY = scaled.height < MIN_OCR_HEIGHT ? MIN_OCR_HEIGHT / scaled.height : MIN_SCALE;
+    const scale = Math.max(scaleX, scaleY, MIN_SCALE);
 
-      console.log(`Upscaling image from ${scaled.width}x${scaled.height} to ${newWidth}x${newHeight} for better OCR`);
+    const newWidth = Math.round(scaled.width * scale);
+    const newHeight = Math.round(scaled.height * scale);
 
-      sharpInstance = sharpInstance.resize(newWidth, newHeight, {
-        kernel: sharp.kernel.lanczos3, // High-quality upscaling
-        fit: 'fill'
-      });
-    }
+    console.log(`Upscaling image from ${scaled.width}x${scaled.height} to ${newWidth}x${newHeight} (${scale.toFixed(2)}x) for better OCR`);
 
-    const croppedBuffer = await sharpInstance
+    // Upscale with high-quality interpolation
+    sharpInstance = sharp(originalBuffer).resize(newWidth, newHeight, {
+      kernel: sharp.kernel.lanczos3, // High-quality upscaling
+      fit: 'fill'
+    });
+
+    // Apply preprocessing for better OCR on small text
+    const processedBuffer = await sharpInstance
+      .grayscale() // Convert to grayscale for better contrast
+      .normalize() // Auto-adjust contrast
+      .sharpen({ sigma: 1.5 }) // Sharpen text edges
       .png({ quality: 100, compressionLevel: 0 })
       .toBuffer();
 
-    // Save debug copy with timestamp
-    this.saveDebugScreenshot(croppedBuffer, 'crop');
+    // Save processed version for debugging
+    this.saveDebugScreenshot(processedBuffer, 'processed');
 
-    return croppedBuffer;
+    return processedBuffer;
   }
 }
