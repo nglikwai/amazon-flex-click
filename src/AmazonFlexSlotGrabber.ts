@@ -67,7 +67,7 @@ export class AmazonFlexSlotGrabber {
     console.log(`${getCurrentTimeMMSS()}, [checkForSlot] detectNumbers returned: "${text}"`);
 
     // Parse text to find the highest dollar amount (e.g., $45.50, $25.00)
-    const detectedEarnings = parseEarnings(text);
+    const detectedEarnings = +text
     console.log(`${getCurrentTimeMMSS()}, [checkForSlot] parsed earnings: ${detectedEarnings}`);
 
     // Check if earnings meet our minimum threshold

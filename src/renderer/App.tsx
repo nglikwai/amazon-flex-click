@@ -79,20 +79,20 @@ function App() {
       case 'running':
         return 'Running';
       case 'stopped':
-        return `Min: $${currentMinEarnings}`;
+        return `Welcome`;
       case 'success':
         return 'Success!';
       case 'error':
         return 'Error';
       default:
-        return `Min: $${currentMinEarnings}`;
+        return `Welcome`;
     }
   };
 
   const getStatusMessage = (status: string): string => {
     switch (status) {
       case 'running':
-        return `Looking for slots ≥ $${currentMinEarnings} (Press ESC to stop)`;
+        return 'Press ESC to stop';
       case 'stopped':
         return 'Click Start to begin';
       case 'success':

@@ -41,7 +41,7 @@ class AmazonFlexSlotGrabber {
         const text = await this.ocrService.detectNumbers(screenshot);
         console.log(`${(0, time_1.getCurrentTimeMMSS)()}, [checkForSlot] detectNumbers returned: "${text}"`);
         // Parse text to find the highest dollar amount (e.g., $45.50, $25.00)
-        const detectedEarnings = (0, earnings_1.parseEarnings)(text);
+        const detectedEarnings = +text;
         console.log(`${(0, time_1.getCurrentTimeMMSS)()}, [checkForSlot] parsed earnings: ${detectedEarnings}`);
         // Check if earnings meet our minimum threshold
         if (detectedEarnings >= this.config.minEarnings) {
@@ -102,6 +102,8 @@ class AmazonFlexSlotGrabber {
         console.log(`Refresh button position: (${this.config.refreshButtonX}, ${this.config.refreshButtonY})`);
         console.log(`Minimum earnings: ${(0, earnings_1.formatEarnings)(this.config.minEarnings)}`);
         console.log(`Interval: ${this.config.intervalMs}ms`);
+        // Clear debug screenshots from previous run
+        services_1.ScreenshotService.clearDebugScreenshots();
         this.isRunning = true;
         // Ensure OCR is ready before starting the main loop
         try {

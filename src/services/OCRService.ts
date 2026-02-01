@@ -87,11 +87,21 @@ export class OCRService {
 
       // Configure for numbers and currency only
       await this.worker.setParameters({
-        tessedit_char_whitelist: '0123456789.$',
+        tessedit_char_whitelist: '0123456789.$,',
         tessedit_pageseg_mode: '8', // Single word - better for enhanced images
       });
 
       const { data: { text } } = await this.worker.recognize(imageBuffer);
+
+      // Extract first number-like sequence and normalize it
+      const raw = text || '';
+      const match = raw.match(/[-+]?\$?\s*[0-9]+(?:[.,][0-9]+)*/);
+      let numberStr = '';
+      if (match) {
+        numberStr = match[0].replace(/\s+/g, '').replace(/\$/g, '');
+        // Normalize by removing thousands separators (commas)
+        numberStr = numberStr.replace(/,/g, '');
+      }
 
       // Reset to general text detection
       await this.worker.setParameters({
@@ -99,7 +109,7 @@ export class OCRService {
         tessedit_pageseg_mode: '6', // Uniform block of text
       });
 
-      return text;
+      return numberStr;
     } catch (error) {
       console.error('Error detecting numbers:', error);
       // Mark as not initialized so next call will re-init
