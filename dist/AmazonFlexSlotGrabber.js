@@ -43,8 +43,10 @@ class AmazonFlexSlotGrabber {
         // Parse text to find the highest dollar amount (e.g., $45.50, $25.00)
         const detectedEarnings = +text;
         console.log(`${(0, time_1.getCurrentTimeMMSS)()}, [checkForSlot] parsed earnings: ${detectedEarnings}`);
-        // Check if earnings meet our minimum threshold
-        if (detectedEarnings >= this.config.minEarnings) {
+        // Check if earnings meet our min/max threshold
+        const meetsMin = detectedEarnings >= this.config.minEarnings;
+        const meetsMax = this.config.maxEarnings === 0 || detectedEarnings <= this.config.maxEarnings;
+        if (meetsMin && meetsMax) {
             this.lastDetectedEarnings = detectedEarnings;
             console.log((0, time_1.getCurrentTimeMMSS)(), ` ✅ Found matched slot: ${(0, earnings_1.formatEarnings)(detectedEarnings)} `);
             this.emitAction('found', `Found ${(0, earnings_1.formatEarnings)(detectedEarnings)} slot!`, detectedEarnings);
@@ -53,7 +55,8 @@ class AmazonFlexSlotGrabber {
         }
         else if (detectedEarnings > 0) {
             console.log((0, time_1.getCurrentTimeMMSS)(), ` 💰 Found slot: ${(0, earnings_1.formatEarnings)(detectedEarnings)}`);
-            this.emitAction('found', `Detected ${(0, earnings_1.formatEarnings)(detectedEarnings)} (below min)`, detectedEarnings);
+            const reason = !meetsMin ? 'below min' : 'above max';
+            this.emitAction('found', `Detected ${(0, earnings_1.formatEarnings)(detectedEarnings)} (${reason})`, detectedEarnings);
         }
         console.log(`${(0, time_1.getCurrentTimeMMSS)()}, [checkForSlot] END - returning false`);
         return false;

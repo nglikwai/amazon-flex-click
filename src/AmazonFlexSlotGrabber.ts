@@ -70,8 +70,10 @@ export class AmazonFlexSlotGrabber {
     const detectedEarnings = +text
     console.log(`${getCurrentTimeMMSS()}, [checkForSlot] parsed earnings: ${detectedEarnings}`);
 
-    // Check if earnings meet our minimum threshold
-    if (detectedEarnings >= this.config.minEarnings) {
+    // Check if earnings meet our min/max threshold
+    const meetsMin = detectedEarnings >= this.config.minEarnings;
+    const meetsMax = this.config.maxEarnings === 0 || detectedEarnings <= this.config.maxEarnings;
+    if (meetsMin && meetsMax) {
       this.lastDetectedEarnings = detectedEarnings;
       console.log(
         getCurrentTimeMMSS(),
@@ -85,7 +87,8 @@ export class AmazonFlexSlotGrabber {
         getCurrentTimeMMSS(),
         ` 💰 Found slot: ${formatEarnings(detectedEarnings)}`
       );
-      this.emitAction('found', `Detected ${formatEarnings(detectedEarnings)} (below min)`, detectedEarnings);
+      const reason = !meetsMin ? 'below min' : 'above max';
+      this.emitAction('found', `Detected ${formatEarnings(detectedEarnings)} (${reason})`, detectedEarnings);
     }
 
     console.log(`${getCurrentTimeMMSS()}, [checkForSlot] END - returning false`);

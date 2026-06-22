@@ -102,7 +102,7 @@ ipcMain.handle('get-config-path', async () => {
 });
 
 ipcMain.handle('check-permissions', async () => {
-  if (process.platform === 'darwin') {
+  if (process.platform === 'darwin' && app.isPackaged) {
     const accessibilityStatus = systemPreferences.isTrustedAccessibilityClient(false);
     // Screen recording permission check
     let screenRecordingStatus = true;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 
 interface SettingsViewProps {
-  onSave: (minEarnings: number) => void;
+  onSave: (minEarnings: number, maxEarnings: number) => void;
   onMousePosition?: (x: number, y: number) => void;
 }
 
@@ -30,6 +30,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onSave, o
   const [appWindowWidth, setAppWindowWidth] = useState('');
   const [appWindowHeight, setAppWindowHeight] = useState('');
   const [minEarnings, setMinEarnings] = useState('');
+  const [maxEarnings, setMaxEarnings] = useState('');
   const [intervalMs, setIntervalMs] = useState('');
   const [detailPageLoadMs, setDetailPageLoadMs] = useState('');
 
@@ -79,6 +80,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onSave, o
       setAppWindowWidth(config.appWindow.width);
       setAppWindowHeight(config.appWindow.height);
       setMinEarnings(config.minEarnings);
+      setMaxEarnings(config.maxEarnings ?? 0);
       setIntervalMs(config.intervalMs || 500);
       setDetailPageLoadMs(config.detailPageLoadMs);
     }
@@ -105,13 +107,14 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onSave, o
         height: parseInt(appWindowHeight),
       },
       minEarnings: parseInt(minEarnings),
+      maxEarnings: parseInt(maxEarnings) || 0,
       intervalMs: parseInt(intervalMs) || 500,
       detailPageLoadMs: parseInt(detailPageLoadMs),
     };
 
     const result = await window.electronAPI.saveConfig(config);
     if (result.success) {
-      onSave(config.minEarnings);
+      onSave(config.minEarnings, config.maxEarnings);
     }
   };
 
@@ -199,6 +202,17 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onSave, o
                   onChange={(e) => setMinEarnings(e.target.value)}
                   className={inputClass}
                   required
+                />
+              </div>
+              <div>
+                <label htmlFor="maxEarnings" className={labelClass}>Maximum Earnings ($) <span className="text-gh-text-muted font-normal">(0 = no limit)</span></label>
+                <input
+                  type="number"
+                  id="maxEarnings"
+                  value={maxEarnings}
+                  onChange={(e) => setMaxEarnings(e.target.value)}
+                  className={inputClass}
+                  min="0"
                 />
               </div>
               <div>

@@ -16,6 +16,7 @@ function App() {
   const [statusTitle, setStatusTitle] = useState<string>('Stopped');
   const [statusMessage, setStatusMessage] = useState<string>('Click Start to begin');
   const [currentMinEarnings, setCurrentMinEarnings] = useState<number>(0);
+  const [currentMaxEarnings, setCurrentMaxEarnings] = useState<number>(0);
   const [successEarnings, setSuccessEarnings] = useState<number>(0);
   const [mouseX, setMouseX] = useState<number>(0);
   const [mouseY, setMouseY] = useState<number>(0);
@@ -39,6 +40,7 @@ function App() {
     const config = await window.electronAPI.getConfig();
     if (config) {
       setCurrentMinEarnings(config.minEarnings);
+      setCurrentMaxEarnings(config.maxEarnings ?? 0);
     }
 
     const status = await window.electronAPI.getStatus();
@@ -59,11 +61,15 @@ function App() {
 
     window.electronAPI.onBotAction((action) => {
       setActionLogs(prev => {
-        const newLogs = [...prev, action as ActionLog];
-        if (newLogs.length > MAX_LOGS) {
-          return newLogs.slice(-MAX_LOGS);
+        const incoming = action as ActionLog;
+        const last = prev[prev.length - 1];
+        if (last && last.type === incoming.type && last.message === incoming.message) {
+          const updated = [...prev];
+          updated[updated.length - 1] = { ...last, count: (last.count ?? 1) + 1, timestamp: incoming.timestamp };
+          return updated;
         }
-        return newLogs;
+        const newLogs = [...prev, incoming];
+        return newLogs.length > MAX_LOGS ? newLogs.slice(-MAX_LOGS) : newLogs;
       });
     });
   };
@@ -131,8 +137,9 @@ function App() {
     }
   };
 
-  const handleSettingsSaved = (minEarnings: number) => {
+  const handleSettingsSaved = (minEarnings: number, maxEarnings: number) => {
     setCurrentMinEarnings(minEarnings);
+    setCurrentMaxEarnings(maxEarnings);
     setCurrentView('status');
     updateStatus('stopped', 'Stopped', 'Settings saved! Click Start to begin');
   };
@@ -163,6 +170,7 @@ function App() {
             message={statusMessage}
             actionLogs={actionLogs}
             currentEarnings={currentMinEarnings}
+            maxEarnings={currentMaxEarnings}
           />
         ) : (
           <SettingsView

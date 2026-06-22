@@ -7,6 +7,7 @@ export interface ActionLog {
   message: string;
   timestamp: string;
   earnings?: number;
+  count?: number;
 }
 
 interface ActivityLogProps {
@@ -82,7 +83,12 @@ const ActivityLog: React.FC<ActivityLogProps> = ({ logs, emptyMessage = 'No acti
                 className={`flex items-center gap-2 px-2 py-1 text-xs hover:bg-gh-bg-tertiary ${getStyles(log.type)}`}
               >
                 <span className="shrink-0 w-4 text-center font-mono">{getIcon(log.type)}</span>
-                <span className="flex-1 text-gh-text truncate">{log.message}</span>
+                <span className="flex-1 text-gh-text truncate">
+                  {log.message}
+                  {log.count && log.count > 1 && (
+                    <span className="ml-1 text-gh-text-muted">({log.count})</span>
+                  )}
+                </span>
                 <span className="shrink-0 text-gh-text-muted font-mono">{formatTime(log.timestamp)}</span>
               </div>
             ))}

@@ -8,9 +8,13 @@ interface StatusHeaderProps {
   title: string;
   message: string;
   currentEarnings?: number;
+  maxEarnings?: number;
 }
 
-const StatusHeader: React.FC<StatusHeaderProps> = ({ status, title, message, currentEarnings }) => {
+const StatusHeader: React.FC<StatusHeaderProps> = ({ status, title, message, currentEarnings, maxEarnings }) => {
+  const showTarget = currentEarnings !== undefined && currentEarnings > 0 && status === 'running';
+  const hasMax = maxEarnings !== undefined && maxEarnings > 0;
+
   return (
     <div className="flex items-center gap-4 pb-4 border-b border-gh-border shrink-0">
       <StatusIndicator status={status} />
@@ -20,10 +24,12 @@ const StatusHeader: React.FC<StatusHeaderProps> = ({ status, title, message, cur
         <p className="text-sm text-gh-text-secondary truncate">{message}</p>
       </div>
 
-      {currentEarnings !== undefined && currentEarnings > 0 && status === 'running' && (
+      {showTarget && (
         <div className="flex flex-col items-end shrink-0">
           <span className="text-xs text-gh-text-muted uppercase tracking-wide">Target</span>
-          <span className="text-xl font-bold text-gh-success">${currentEarnings.toFixed(2)}+</span>
+          <span className="text-xl font-bold text-gh-success">
+            ${currentEarnings!.toFixed(2)}{hasMax ? `–$${maxEarnings!.toFixed(2)}` : '+'}
+          </span>
         </div>
       )}
     </div>

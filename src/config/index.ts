@@ -22,6 +22,7 @@ const DEFAULT_CONFIG: Config = {
     height: 123
   },
   minEarnings: 60,
+  maxEarnings: 0,
   intervalMs: 500,
   detailPageLoadMs: 1000
 };

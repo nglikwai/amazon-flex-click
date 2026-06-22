@@ -16,6 +16,7 @@ export interface Config {
     height: number;
   };
   minEarnings: number;
+  maxEarnings: number;
   intervalMs: number;
   detailPageLoadMs: number;
 }

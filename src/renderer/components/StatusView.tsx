@@ -12,9 +12,10 @@ interface StatusViewProps {
   message: string;
   actionLogs: ActionLog[];
   currentEarnings?: number;
+  maxEarnings?: number;
 }
 
-const StatusView: React.FC<StatusViewProps> = ({ status, title, message, actionLogs, currentEarnings }) => {
+const StatusView: React.FC<StatusViewProps> = ({ status, title, message, actionLogs, currentEarnings, maxEarnings }) => {
   const emptyMessage = status === 'stopped' ? 'Click Start to begin' : 'Waiting for activity...';
 
   return (
@@ -25,6 +26,7 @@ const StatusView: React.FC<StatusViewProps> = ({ status, title, message, actionL
           title={title}
           message={message}
           currentEarnings={currentEarnings}
+          maxEarnings={maxEarnings}
         />
 
         <ActivityLog
