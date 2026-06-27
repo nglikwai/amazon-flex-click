@@ -53,6 +53,12 @@ const DEFAULT_CONFIG = {
         width: 62,
         height: 27
     },
+    timeArea: {
+        x: 1300,
+        y: 400,
+        width: 120,
+        height: 27
+    },
     appWindow: {
         x: 1085,
         y: 240,
@@ -61,8 +67,10 @@ const DEFAULT_CONFIG = {
     },
     minEarnings: 60,
     maxEarnings: 0,
+    minAvgEarningsPerHour: 0,
     intervalMs: 500,
-    detailPageLoadMs: 1000
+    detailPageLoadMs: 1000,
+    notificationEmail: ''
 };
 // Get the user data directory (persists across app updates)
 function getUserConfigPath() {

@@ -3,6 +3,8 @@ import * as path from 'path';
 import robot from '@jitsi/robotjs';
 import { AmazonFlexSlotGrabber } from '../AmazonFlexSlotGrabber';
 import { loadConfig, configExists, saveConfig, getDefaultConfig, resetToDefault } from '../config';
+import { sendSuccessNotification } from '../services/EmailService';
+import { ScreenshotService } from '../services/ScreenshotService';
 import { Config } from '../types';
 
 let mainWindow: BrowserWindow | null = null;
@@ -51,7 +53,11 @@ function createWindow() {
   }
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  const screenshotsDir = path.join(app.getPath('userData'), 'debug-screenshots');
+  ScreenshotService.setDebugDir(screenshotsDir);
+  createWindow();
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -124,6 +130,14 @@ ipcMain.handle('check-permissions', async () => {
   return { accessibility: true, screenRecording: true, needsPermissions: false };
 });
 
+ipcMain.handle('open-screenshots-folder', async () => {
+  const dir = ScreenshotService.getDebugDir();
+  if (!require('fs').existsSync(dir)) {
+    require('fs').mkdirSync(dir, { recursive: true });
+  }
+  await shell.openPath(dir);
+});
+
 ipcMain.handle('open-system-preferences', async () => {
   if (process.platform === 'darwin') {
     shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility');
@@ -158,12 +172,22 @@ ipcMain.handle('start-bot', async () => {
     console.log('Bot initialized and ready to start');
 
     // Start the bot in background
-    grabber.start().then(() => {
+    grabber.start().then(async () => {
       console.log('Bot stopped normally');
       const earnings = grabber?.getLastDetectedEarnings() || 0;
       if (earnings > 0) {
         mainWindow?.webContents.send('bot-success', earnings);
         mainWindow?.webContents.send('bot-status', 'success');
+        const cfg = loadConfig();
+        if (cfg.notificationEmail) {
+          try {
+            const screenshot = grabber?.getLastSlotScreenshot() ?? null;
+            const details = grabber?.getLastSuccessMessage() ?? `$${earnings.toFixed(2)}`;
+            await sendSuccessNotification(cfg.notificationEmail, earnings, details, screenshot);
+          } catch (err) {
+            console.error('[main] Failed to send email notification:', err);
+          }
+        }
       } else {
         mainWindow?.webContents.send('bot-status', 'stopped');
       }

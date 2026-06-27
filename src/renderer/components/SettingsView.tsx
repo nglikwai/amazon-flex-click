@@ -25,12 +25,18 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onSave, o
   const [searchAreaY, setSearchAreaY] = useState('');
   const [searchAreaWidth, setSearchAreaWidth] = useState('');
   const [searchAreaHeight, setSearchAreaHeight] = useState('');
+  const [timeAreaX, setTimeAreaX] = useState('');
+  const [timeAreaY, setTimeAreaY] = useState('');
+  const [timeAreaWidth, setTimeAreaWidth] = useState('');
+  const [timeAreaHeight, setTimeAreaHeight] = useState('');
   const [appWindowX, setAppWindowX] = useState('');
   const [appWindowY, setAppWindowY] = useState('');
   const [appWindowWidth, setAppWindowWidth] = useState('');
   const [appWindowHeight, setAppWindowHeight] = useState('');
   const [minEarnings, setMinEarnings] = useState('');
   const [maxEarnings, setMaxEarnings] = useState('');
+  const [minAvgEarningsPerHour, setMinAvgEarningsPerHour] = useState('');
+  const [notificationEmail, setNotificationEmail] = useState('');
   const [intervalMs, setIntervalMs] = useState('');
   const [detailPageLoadMs, setDetailPageLoadMs] = useState('');
 
@@ -75,12 +81,18 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onSave, o
       setSearchAreaY(config.searchArea.y);
       setSearchAreaWidth(config.searchArea.width);
       setSearchAreaHeight(config.searchArea.height);
+      setTimeAreaX(config.timeArea?.x ?? '');
+      setTimeAreaY(config.timeArea?.y ?? '');
+      setTimeAreaWidth(config.timeArea?.width ?? '');
+      setTimeAreaHeight(config.timeArea?.height ?? '');
       setAppWindowX(config.appWindow.x);
       setAppWindowY(config.appWindow.y);
       setAppWindowWidth(config.appWindow.width);
       setAppWindowHeight(config.appWindow.height);
       setMinEarnings(config.minEarnings);
       setMaxEarnings(config.maxEarnings ?? 0);
+      setMinAvgEarningsPerHour(config.minAvgEarningsPerHour ?? 0);
+      setNotificationEmail(config.notificationEmail ?? '');
       setIntervalMs(config.intervalMs || 500);
       setDetailPageLoadMs(config.detailPageLoadMs);
     }
@@ -100,6 +112,12 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onSave, o
         width: parseInt(searchAreaWidth),
         height: parseInt(searchAreaHeight),
       },
+      timeArea: {
+        x: parseInt(timeAreaX) || 0,
+        y: parseInt(timeAreaY) || 0,
+        width: parseInt(timeAreaWidth) || 0,
+        height: parseInt(timeAreaHeight) || 0,
+      },
       appWindow: {
         x: parseInt(appWindowX),
         y: parseInt(appWindowY),
@@ -108,8 +126,10 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onSave, o
       },
       minEarnings: parseInt(minEarnings),
       maxEarnings: parseInt(maxEarnings) || 0,
+      minAvgEarningsPerHour: parseFloat(minAvgEarningsPerHour) || 0,
       intervalMs: parseInt(intervalMs) || 500,
       detailPageLoadMs: parseInt(detailPageLoadMs),
+      notificationEmail: notificationEmail.trim(),
     };
 
     const result = await window.electronAPI.saveConfig(config);
@@ -150,6 +170,11 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onSave, o
           setSearchAreaY(result.y.toString());
           setSearchAreaWidth(result.width.toString());
           setSearchAreaHeight(result.height.toString());
+        } else if (target === 'timeArea') {
+          setTimeAreaX(result.x.toString());
+          setTimeAreaY(result.y.toString());
+          setTimeAreaWidth(result.width.toString());
+          setTimeAreaHeight(result.height.toString());
         } else if (target === 'appWindow') {
           setAppWindowX(result.x.toString());
           setAppWindowY(result.y.toString());
@@ -213,6 +238,29 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onSave, o
                   onChange={(e) => setMaxEarnings(e.target.value)}
                   className={inputClass}
                   min="0"
+                />
+              </div>
+              <div>
+                <label htmlFor="minAvgEarningsPerHour" className={labelClass}>Min Avg Earnings/hr ($) <span className="text-gh-text-muted font-normal">(0 = no limit)</span></label>
+                <input
+                  type="number"
+                  id="minAvgEarningsPerHour"
+                  value={minAvgEarningsPerHour}
+                  onChange={(e) => setMinAvgEarningsPerHour(e.target.value)}
+                  className={inputClass}
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+              <div className="col-span-2">
+                <label htmlFor="notificationEmail" className={labelClass}>Notification Email <span className="text-gh-text-muted font-normal">(leave blank to disable)</span></label>
+                <input
+                  type="email"
+                  id="notificationEmail"
+                  value={notificationEmail}
+                  onChange={(e) => setNotificationEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className={inputClass}
                 />
               </div>
               <div>
@@ -386,6 +434,72 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onSave, o
             </div>
           </div>
 
+          {/* Time Area */}
+          <div>
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-sm font-semibold text-gh-accent">Time Area</h3>
+              <button
+                type="button"
+                className="px-3 py-1.5 bg-gh-accent hover:bg-gh-accent-emphasis text-white text-sm font-medium rounded-md transition-colors flex items-center gap-2"
+                onClick={() => handlePickArea('timeArea')}
+                title="Pick area (2 clicks)"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <path d="M12 8v8m-4-4h8"/>
+                </svg>
+                <span>Pick Area</span>
+              </button>
+            </div>
+            <p className="text-xs text-gh-text-muted mb-3">Region containing the working time (e.g. 17:15 - 21:15). Used to calculate average earnings per hour.</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="timeAreaX" className={labelClass}>Top-Left X</label>
+                <input
+                  type="number"
+                  id="timeAreaX"
+                  value={timeAreaX}
+                  onChange={(e) => setTimeAreaX(e.target.value)}
+                  className={`${inputClass} bg-gh-bg-tertiary`}
+                  readOnly
+                />
+              </div>
+              <div>
+                <label htmlFor="timeAreaY" className={labelClass}>Top-Left Y</label>
+                <input
+                  type="number"
+                  id="timeAreaY"
+                  value={timeAreaY}
+                  onChange={(e) => setTimeAreaY(e.target.value)}
+                  className={`${inputClass} bg-gh-bg-tertiary`}
+                  readOnly
+                />
+              </div>
+              <div>
+                <label htmlFor="timeAreaWidth" className={labelClass}>Width</label>
+                <input
+                  type="number"
+                  id="timeAreaWidth"
+                  value={timeAreaWidth}
+                  onChange={(e) => setTimeAreaWidth(e.target.value)}
+                  className={`${inputClass} bg-gh-bg-tertiary`}
+                  readOnly
+                />
+              </div>
+              <div>
+                <label htmlFor="timeAreaHeight" className={labelClass}>Height</label>
+                <input
+                  type="number"
+                  id="timeAreaHeight"
+                  value={timeAreaHeight}
+                  onChange={(e) => setTimeAreaHeight(e.target.value)}
+                  className={`${inputClass} bg-gh-bg-tertiary`}
+                  readOnly
+                />
+              </div>
+            </div>
+          </div>
+
           {/* App Window */}
           <div>
             <div className="flex justify-between items-center mb-3">
@@ -453,6 +567,22 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onSave, o
                 />
               </div>
             </div>
+          </div>
+
+          {/* Debug Screenshots */}
+          <div>
+            <h3 className={sectionTitleClass}>Debug Screenshots</h3>
+            <p className="text-xs text-gh-text-muted mb-3">Screenshots are saved next to your config file each time the bot scans for slots.</p>
+            <button
+              type="button"
+              className="px-3 py-2 bg-gh-bg border border-gh-border hover:border-gh-accent text-gh-text text-sm font-medium rounded-md transition-colors flex items-center gap-2"
+              onClick={() => window.electronAPI.openScreenshotsFolder()}
+            >
+              <svg className="w-4 h-4 text-gh-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+              </svg>
+              Open Screenshots Folder
+            </button>
           </div>
         </form>
       </div>

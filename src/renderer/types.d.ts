@@ -6,6 +6,7 @@ export interface ElectronAPI {
   getConfigPath: () => Promise<string>;
   checkPermissions: () => Promise<{ accessibility: boolean; screenRecording: boolean; needsPermissions: boolean }>;
   openSystemPreferences: () => Promise<void>;
+  openScreenshotsFolder: () => Promise<void>;
   startBot: () => Promise<{ success: boolean; error?: string }>;
   stopBot: () => Promise<{ success: boolean; error?: string }>;
   getStatus: () => Promise<string>;

@@ -9,6 +9,25 @@ type BotStatus = 'stopped' | 'running' | 'success' | 'error';
 
 const MAX_LOGS = 100;
 
+function playSuccessSound() {
+  const ctx = new AudioContext();
+  // Ascending C major arpeggio: C5 → E5 → G5 → C6
+  const notes = [523.25, 659.25, 783.99, 1046.50];
+  notes.forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    const t = ctx.currentTime + i * 0.13;
+    gain.gain.setValueAtTime(0.35, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+    osc.start(t);
+    osc.stop(t + 0.4);
+  });
+}
+
 function App() {
   const settingsRef = useRef<SettingsViewRef>(null);
   const [currentView, setCurrentView] = useState<ViewType>('status');
@@ -55,6 +74,7 @@ function App() {
     });
 
     window.electronAPI.onBotSuccess((earnings: number) => {
+      playSuccessSound();
       setSuccessEarnings(earnings);
       updateStatus('success', 'Success!', `Slot grabbed for $${earnings.toFixed(2)}`);
     });

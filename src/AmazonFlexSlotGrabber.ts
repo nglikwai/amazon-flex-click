@@ -2,7 +2,7 @@ import { Config } from "./types";
 import { clickPosition, sleep } from "./utils";
 import { parseEarnings, formatEarnings } from "./utils/earnings";
 import { ScreenshotService, OCRService } from "./services";
-import { getCurrentTimeMMSS } from "./utils/time";
+import { getCurrentTimeMMSS, parseWorkingHours } from "./utils/time";
 
 export type ActionType = 'refresh' | 'scanning' | 'found' | 'grabbing' | 'clicked' | 'success' | 'failed' | 'unavailable';
 
@@ -21,6 +21,8 @@ export class AmazonFlexSlotGrabber {
   private ocrService: OCRService;
   private isRunning: boolean = false;
   private lastDetectedEarnings: number = 0;
+  private lastSlotScreenshot: Buffer | null = null;
+  private lastSuccessMessage: string = '';
   private onAction: ActionCallback | null = null;
 
   constructor(config: Config) {
@@ -73,15 +75,46 @@ export class AmazonFlexSlotGrabber {
     // Check if earnings meet our min/max threshold
     const meetsMin = detectedEarnings >= this.config.minEarnings;
     const meetsMax = this.config.maxEarnings === 0 || detectedEarnings <= this.config.maxEarnings;
-    if (meetsMin && meetsMax) {
+
+    // Check average earnings per hour if configured and a time area is set
+    let meetsAvgPerHour = true;
+    let workingHours: number | null = null;
+    if (meetsMin && meetsMax && detectedEarnings > 0 && this.config.minAvgEarningsPerHour > 0) {
+      const timeScreenshot = await ScreenshotService.takeRegionScreenshot(
+        this.config.timeArea.x,
+        this.config.timeArea.y,
+        this.config.timeArea.width,
+        this.config.timeArea.height
+      );
+      const timeText = await this.ocrService.detectText(timeScreenshot);
+      console.log(`${getCurrentTimeMMSS()}, [checkForSlot] time text: "${timeText.trim()}"`);
+      workingHours = parseWorkingHours(timeText);
+      if (workingHours !== null && workingHours > 0) {
+        const avgPerHour = detectedEarnings / workingHours;
+        meetsAvgPerHour = avgPerHour >= this.config.minAvgEarningsPerHour;
+        console.log(`${getCurrentTimeMMSS()}, [checkForSlot] ${workingHours.toFixed(2)}h → ${formatEarnings(avgPerHour)}/hr (min: ${formatEarnings(this.config.minAvgEarningsPerHour)}/hr) meets: ${meetsAvgPerHour}`);
+        if (!meetsAvgPerHour) {
+          this.emitAction('found', `Detected ${formatEarnings(detectedEarnings)} / ${workingHours.toFixed(1)}h = ${formatEarnings(avgPerHour)}/hr (below min avg)`, detectedEarnings);
+        }
+      } else {
+        console.log(`${getCurrentTimeMMSS()}, [checkForSlot] could not parse working hours from time text`);
+      }
+    }
+
+    if (meetsMin && meetsMax && meetsAvgPerHour) {
       this.lastDetectedEarnings = detectedEarnings;
+      this.lastSlotScreenshot = screenshot;
+      const hourStr = workingHours ? ` / ${workingHours.toFixed(1)}h = ${formatEarnings(detectedEarnings / workingHours)}/hr` : '';
+      this.lastSuccessMessage = `${formatEarnings(detectedEarnings)}${hourStr}`;
       console.log(
         getCurrentTimeMMSS(),
-        ` ✅ Found matched slot: ${formatEarnings(detectedEarnings)} `
+        ` ✅ Found matched slot: ${formatEarnings(detectedEarnings)}${hourStr}`
       );
-      this.emitAction('found', `Found ${formatEarnings(detectedEarnings)} slot!`, detectedEarnings);
+      this.emitAction('found', `Found ${formatEarnings(detectedEarnings)} slot!${hourStr}`, detectedEarnings);
       console.log(`${getCurrentTimeMMSS()}, [checkForSlot] END - returning true`);
       return true;
+    } else if (detectedEarnings > 0 && !meetsAvgPerHour) {
+      // already emitted above
     } else if (detectedEarnings > 0) {
       console.log(
         getCurrentTimeMMSS(),
@@ -235,5 +268,13 @@ export class AmazonFlexSlotGrabber {
 
   getLastDetectedEarnings(): number {
     return this.lastDetectedEarnings;
+  }
+
+  getLastSlotScreenshot(): Buffer | null {
+    return this.lastSlotScreenshot;
+  }
+
+  getLastSuccessMessage(): string {
+    return this.lastSuccessMessage;
   }
 }

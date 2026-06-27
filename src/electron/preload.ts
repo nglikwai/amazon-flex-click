@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getConfigPath: () => ipcRenderer.invoke('get-config-path'),
   checkPermissions: () => ipcRenderer.invoke('check-permissions'),
   openSystemPreferences: () => ipcRenderer.invoke('open-system-preferences'),
+  openScreenshotsFolder: () => ipcRenderer.invoke('open-screenshots-folder'),
   startBot: () => ipcRenderer.invoke('start-bot'),
   stopBot: () => ipcRenderer.invoke('stop-bot'),
   getStatus: () => ipcRenderer.invoke('get-status'),
