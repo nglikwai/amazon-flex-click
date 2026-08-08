@@ -9,7 +9,15 @@
       "Bash(npm start)",
       "Bash(ts-node:*)",
       "Read(//tmp/**)",
-      "Bash(npx electron-rebuild:*)"
+      "Bash(npx electron-rebuild:*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(npx tsc *)",
+      "Bash(git -C /Users/likwai/projects/aws-click status)",
+      "Bash(git -C /Users/likwai/projects/aws-click log --oneline -5)",
+      "Bash(git *)",
+      "Bash(open *)",
+      "Bash(npm run *)"
     ],
     "deny": [],
     "ask": []

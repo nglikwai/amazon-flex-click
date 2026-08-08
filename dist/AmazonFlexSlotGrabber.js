@@ -24,17 +24,30 @@ class AmazonFlexSlotGrabber {
             this.onAction({ type, message, timestamp: new Date(), earnings });
         }
     }
-    // Initialize the OCR service for text detection
+    isBlindMode() {
+        return this.config.minEarnings === 0;
+    }
+    // Initialize the OCR service for text detection (skipped in blind mode)
     async initialize() {
+        if (this.isBlindMode())
+            return;
         await this.ocrService.initialize();
     }
     // Clean up resources when shutting down
     async cleanup() {
+        if (this.isBlindMode())
+            return;
         await this.ocrService.cleanup();
     }
     // Check if there's a slot with earnings >= minimum threshold
     async checkForSlot() {
         console.log(`${(0, time_1.getCurrentTimeMMSS)()}, [checkForSlot] START`);
+        // Blind mode (minEarnings=0): skip screencap/OCR and always attempt to grab
+        if (this.isBlindMode()) {
+            console.log(`${(0, time_1.getCurrentTimeMMSS)()}, [checkForSlot] blind mode — skipping OCR`);
+            this.emitAction('scanning', 'Blind mode — clicking without OCR');
+            return true;
+        }
         // Take screenshot of the search area only for better accuracy
         const screenshot = await services_1.ScreenshotService.takeRegionScreenshot(this.config.searchArea.x, this.config.searchArea.y, this.config.searchArea.width, this.config.searchArea.height);
         console.log(`${(0, time_1.getCurrentTimeMMSS)()}, [checkForSlot] screenshot taken`);
@@ -66,6 +79,8 @@ class AmazonFlexSlotGrabber {
             }
             else {
                 console.log(`${(0, time_1.getCurrentTimeMMSS)()}, [checkForSlot] could not parse working hours from time text`);
+                meetsAvgPerHour = false;
+                this.emitAction('found', `Detected ${(0, earnings_1.formatEarnings)(detectedEarnings)} but could not read working hours (avg $/hr filter requires it)`, detectedEarnings);
             }
         }
         if (meetsMin && meetsMax && meetsAvgPerHour) {
@@ -91,8 +106,11 @@ class AmazonFlexSlotGrabber {
     }
     // Attempt to grab/schedule a slot that was found
     async grabSlot() {
-        console.log("Attempting to grab slot...");
-        this.emitAction('grabbing', `Grabbing ${(0, earnings_1.formatEarnings)(this.lastDetectedEarnings)} slot...`, this.lastDetectedEarnings);
+        const blind = this.isBlindMode();
+        console.log(blind ? "Blind grab (no OCR)..." : "Attempting to grab slot...");
+        this.emitAction('grabbing', blind
+            ? 'Blind click searchArea + schedule...'
+            : `Grabbing ${(0, earnings_1.formatEarnings)(this.lastDetectedEarnings)} slot...`, blind ? undefined : this.lastDetectedEarnings);
         try {
             // Calculate center of search area where the slot should be
             const centerX = this.config.searchArea.x + this.config.searchArea.width / 2;
@@ -106,6 +124,11 @@ class AmazonFlexSlotGrabber {
             console.log((0, time_1.getCurrentTimeMMSS)(), " clicked on schedule button!");
             (0, utils_1.clickPosition)(this.config.scheduleButtonX, this.config.scheduleButtonY);
             this.emitAction('clicked', 'Clicked schedule button');
+            // Blind mode: no verification — keep looping until stopped manually
+            if (blind) {
+                await (0, utils_1.sleep)(200);
+                return false;
+            }
             // Wait for booking response
             await (0, utils_1.sleep)(1000);
             // Verify if booking was successful by checking the app window content
@@ -129,23 +152,33 @@ class AmazonFlexSlotGrabber {
         }
     }
     async start() {
+        const blind = this.isBlindMode();
         console.log("Starting Amazon Flex slot grabber...");
         console.log(`Refresh button position: (${this.config.refreshButtonX}, ${this.config.refreshButtonY})`);
-        console.log(`Minimum earnings: ${(0, earnings_1.formatEarnings)(this.config.minEarnings)}`);
+        console.log(blind
+            ? "Mode: BLIND (minEarnings=0) — no screencap/OCR, blink-click only"
+            : `Minimum earnings: ${(0, earnings_1.formatEarnings)(this.config.minEarnings)}`);
         console.log(`Interval: ${this.config.intervalMs}ms`);
         // Clear debug screenshots from previous run
-        services_1.ScreenshotService.clearDebugScreenshots();
+        if (!blind)
+            services_1.ScreenshotService.clearDebugScreenshots();
         this.isRunning = true;
-        // Ensure OCR is ready before starting the main loop
-        try {
-            await this.ocrService.initialize();
-            console.log("OCR service confirmed ready, starting main loop...");
+        // Ensure OCR is ready before starting the main loop (skipped in blind mode)
+        if (!blind) {
+            try {
+                await this.ocrService.initialize();
+                console.log("OCR service confirmed ready, starting main loop...");
+            }
+            catch (error) {
+                console.error("Failed to initialize OCR service:", error);
+                this.isRunning = false;
+                throw error;
+            }
         }
-        catch (error) {
-            console.error("Failed to initialize OCR service:", error);
-            this.isRunning = false;
-            throw error;
+        else {
+            console.log("Blind mode ready, starting main loop...");
         }
+        let noSlotCount = 0;
         while (this.isRunning) {
             try {
                 console.log("\x1b[36m%s\x1b[0m", `${(0, time_1.getCurrentTimeMMSS)()}, === LOOP ITERATION START, isRunning: ${this.isRunning} ===`);
@@ -159,6 +192,7 @@ class AmazonFlexSlotGrabber {
                 const slotFound = await this.checkForSlot();
                 console.log(`${(0, time_1.getCurrentTimeMMSS)()}, slot found: ${slotFound}, isRunning: ${this.isRunning}`);
                 if (slotFound) {
+                    noSlotCount = 0;
                     console.log(`${(0, time_1.getCurrentTimeMMSS)()}, calling grabSlot()...`);
                     const success = await this.grabSlot();
                     console.log(`${(0, time_1.getCurrentTimeMMSS)()}, grabSlot returned: ${success}`);
@@ -166,6 +200,13 @@ class AmazonFlexSlotGrabber {
                         console.log("🎉 Slot successfully scheduled! Stopping...");
                         this.stop();
                         break;
+                    }
+                }
+                else if (!blind) {
+                    noSlotCount++;
+                    const interval = this.config.justForYouCheckInterval ?? 0;
+                    if (interval > 0 && noSlotCount % interval === 0) {
+                        await this.checkJustForYou();
                     }
                 }
                 console.log(`${(0, time_1.getCurrentTimeMMSS)()}, waiting ${this.config.intervalMs}ms before next refresh...`);
@@ -179,6 +220,28 @@ class AmazonFlexSlotGrabber {
             }
         }
         console.log(`${(0, time_1.getCurrentTimeMMSS)()}, exited main loop, isRunning: ${this.isRunning}`);
+    }
+    async checkJustForYou() {
+        const area = this.config.justForYouArea;
+        if (!area?.width || !area?.height)
+            return;
+        try {
+            const screenshot = await services_1.ScreenshotService.takeRegionScreenshot(area.x, area.y, area.width, area.height);
+            const text = await this.ocrService.detectText(screenshot);
+            console.log(`${(0, time_1.getCurrentTimeMMSS)()}, [justForYou] OCR: "${text.trim().replace(/\n/g, ' ')}"`);
+            if (text.toLowerCase().includes('just for you')) {
+                this.emitAction('scanning', 'Just for you detected — declining...');
+                (0, utils_1.clickPosition)(this.config.justForYouSlotX, this.config.justForYouSlotY);
+                await (0, utils_1.sleep)(this.config.detailPageLoadMs);
+                (0, utils_1.clickPosition)(this.config.justForYouDeclineX, this.config.justForYouDeclineY);
+                await (0, utils_1.sleep)(this.config.detailPageLoadMs);
+                (0, utils_1.clickPosition)(this.config.justForYouConfirmDeclineX, this.config.justForYouConfirmDeclineY);
+                await (0, utils_1.sleep)(this.config.detailPageLoadMs);
+            }
+        }
+        catch (err) {
+            console.error(`${(0, time_1.getCurrentTimeMMSS)()}, [justForYou] error:`, err);
+        }
     }
     stop() {
         console.log("Stopping slot grabber...");
