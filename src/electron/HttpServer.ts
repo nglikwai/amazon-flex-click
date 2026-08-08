@@ -162,7 +162,8 @@ ${navHTML('dashboard')}
         ? '<div class="earnings-badge">$' + data.earnings.toFixed(2) + '</div>' : '';
 
       const chips = [];
-      if (data.minEarnings > 0) chips.push('Min <span>$' + data.minEarnings + '</span>');
+      if (data.minEarnings === 0) chips.push('<span>Blind mode</span>');
+      else if (data.minEarnings > 0) chips.push('Min <span>$' + data.minEarnings + '</span>');
       if (data.maxEarnings > 0) chips.push('Max <span>$' + data.maxEarnings + '</span>');
       if (data.minAvgEarningsPerHour > 0) chips.push('Avg <span>$' + data.minAvgEarningsPerHour + '/hr</span>');
       document.getElementById('cfg-chips').innerHTML = chips.map(c => '<div class="chip">' + c + '</div>').join('');
@@ -317,8 +318,8 @@ ${navHTML('config')}
     <div class="card">
       <div class="card-title">Earnings</div>
 
-      <div class="sl-row"><span class="sl-label">Min ($)</span><span class="sl-val" id="lbl-minEarnings"></span></div>
-      <input type="range" name="minEarnings" id="minEarnings" min="20" max="150" step="1" value="${cfg.minEarnings ?? 20}" oninput="upd(this,'$',false)"/>
+      <div class="sl-row"><span class="sl-label">Min ($) — 0=blind</span><span class="sl-val" id="lbl-minEarnings"></span></div>
+      <input type="range" name="minEarnings" id="minEarnings" min="0" max="150" step="1" value="${cfg.minEarnings ?? 20}" oninput="updMin(this)"/>
 
       <div class="sl-row"><span class="sl-label">Max ($)</span><span class="sl-val" id="lbl-maxEarnings"></span></div>
       <input type="range" name="maxEarnings" id="maxEarnings" min="0" max="150" step="1" value="${cfg.maxEarnings ?? 0}" oninput="upd(this,'$',true)"/>
@@ -350,6 +351,13 @@ ${navHTML('config')}
     const lbl = document.getElementById('lbl-' + el.id);
     if (zeroOff && v === 0) { lbl.textContent = 'Off'; lbl.className = 'sl-val off'; }
     else { lbl.textContent = prefix + v + (suffix || ''); lbl.className = 'sl-val'; }
+    track(el);
+  }
+  function updMin(el) {
+    const v = parseFloat(el.value);
+    const lbl = document.getElementById('lbl-' + el.id);
+    if (v === 0) { lbl.textContent = 'Blind'; lbl.className = 'sl-val off'; }
+    else { lbl.textContent = '$' + v; lbl.className = 'sl-val'; }
     track(el);
   }
   function updMs(el) {

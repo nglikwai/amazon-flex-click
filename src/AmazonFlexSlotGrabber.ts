@@ -40,19 +40,32 @@ export class AmazonFlexSlotGrabber {
     }
   }
 
-  // Initialize the OCR service for text detection
+  private isBlindMode(): boolean {
+    return this.config.minEarnings === 0;
+  }
+
+  // Initialize the OCR service for text detection (skipped in blind mode)
   async initialize(): Promise<void> {
+    if (this.isBlindMode()) return;
     await this.ocrService.initialize();
   }
 
   // Clean up resources when shutting down
   async cleanup(): Promise<void> {
+    if (this.isBlindMode()) return;
     await this.ocrService.cleanup();
   }
 
   // Check if there's a slot with earnings >= minimum threshold
   async checkForSlot(): Promise<boolean> {
     console.log(`${getCurrentTimeMMSS()}, [checkForSlot] START`);
+
+    // Blind mode (minEarnings=0): skip screencap/OCR and always attempt to grab
+    if (this.isBlindMode()) {
+      console.log(`${getCurrentTimeMMSS()}, [checkForSlot] blind mode — skipping OCR`);
+      this.emitAction('scanning', 'Blind mode — clicking without OCR');
+      return true;
+    }
 
     // Take screenshot of the search area only for better accuracy
     const screenshot = await ScreenshotService.takeRegionScreenshot(
@@ -132,8 +145,15 @@ export class AmazonFlexSlotGrabber {
 
   // Attempt to grab/schedule a slot that was found
   async grabSlot(): Promise<boolean> {
-    console.log("Attempting to grab slot...");
-    this.emitAction('grabbing', `Grabbing ${formatEarnings(this.lastDetectedEarnings)} slot...`, this.lastDetectedEarnings);
+    const blind = this.isBlindMode();
+    console.log(blind ? "Blind grab (no OCR)..." : "Attempting to grab slot...");
+    this.emitAction(
+      'grabbing',
+      blind
+        ? 'Blind click searchArea + schedule...'
+        : `Grabbing ${formatEarnings(this.lastDetectedEarnings)} slot...`,
+      blind ? undefined : this.lastDetectedEarnings
+    );
 
     try {
       // Calculate center of search area where the slot should be
@@ -153,6 +173,12 @@ export class AmazonFlexSlotGrabber {
       console.log(getCurrentTimeMMSS(), " clicked on schedule button!");
       clickPosition(this.config.scheduleButtonX, this.config.scheduleButtonY);
       this.emitAction('clicked', 'Clicked schedule button');
+
+      // Blind mode: no verification — keep looping until stopped manually
+      if (blind) {
+        await sleep(200);
+        return false;
+      }
 
       // Wait for booking response
       await sleep(1000);
@@ -189,26 +215,35 @@ export class AmazonFlexSlotGrabber {
   }
 
   async start(): Promise<void> {
+    const blind = this.isBlindMode();
     console.log("Starting Amazon Flex slot grabber...");
     console.log(
       `Refresh button position: (${this.config.refreshButtonX}, ${this.config.refreshButtonY})`
     );
-    console.log(`Minimum earnings: ${formatEarnings(this.config.minEarnings)}`);
+    console.log(
+      blind
+        ? "Mode: BLIND (minEarnings=0) — no screencap/OCR, blink-click only"
+        : `Minimum earnings: ${formatEarnings(this.config.minEarnings)}`
+    );
     console.log(`Interval: ${this.config.intervalMs}ms`);
 
     // Clear debug screenshots from previous run
-    ScreenshotService.clearDebugScreenshots();
+    if (!blind) ScreenshotService.clearDebugScreenshots();
 
     this.isRunning = true;
 
-    // Ensure OCR is ready before starting the main loop
-    try {
-      await this.ocrService.initialize();
-      console.log("OCR service confirmed ready, starting main loop...");
-    } catch (error) {
-      console.error("Failed to initialize OCR service:", error);
-      this.isRunning = false;
-      throw error;
+    // Ensure OCR is ready before starting the main loop (skipped in blind mode)
+    if (!blind) {
+      try {
+        await this.ocrService.initialize();
+        console.log("OCR service confirmed ready, starting main loop...");
+      } catch (error) {
+        console.error("Failed to initialize OCR service:", error);
+        this.isRunning = false;
+        throw error;
+      }
+    } else {
+      console.log("Blind mode ready, starting main loop...");
     }
 
     let noSlotCount = 0;
@@ -245,7 +280,7 @@ export class AmazonFlexSlotGrabber {
             this.stop();
             break;
           }
-        } else {
+        } else if (!blind) {
           noSlotCount++;
           const interval = this.config.justForYouCheckInterval ?? 0;
           if (interval > 0 && noSlotCount % interval === 0) {

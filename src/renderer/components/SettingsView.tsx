@@ -101,8 +101,8 @@ const SettingsView = forwardRef<SettingsViewRef, Props>(({ onSave, onMousePositi
         <Accordion id="earnings" title="Earnings" open={openSections.has('earnings')} onToggle={toggle}>
           <div className="grid grid-cols-3 gap-3 mt-4">
             <div>
-              <label className={label}>Min ($)</label>
-              <input type="number" value={form.minEarnings} onChange={(e) => setField('minEarnings', e.target.value)} className={input} placeholder="60" />
+              <label className={label}>Min ($) <span className="normal-case font-normal text-gh-text-muted/60">0=blind</span></label>
+              <input type="number" value={form.minEarnings} onChange={(e) => setField('minEarnings', e.target.value)} className={input} placeholder="60" min="0" />
             </div>
             <div>
               <label className={label}>Max ($) <span className="normal-case font-normal text-gh-text-muted/60">0=off</span></label>
