@@ -98,6 +98,8 @@ export class AmazonFlexSlotGrabber {
         }
       } else {
         console.log(`${getCurrentTimeMMSS()}, [checkForSlot] could not parse working hours from time text`);
+        meetsAvgPerHour = false;
+        this.emitAction('found', `Detected ${formatEarnings(detectedEarnings)} but could not read working hours (avg $/hr filter requires it)`, detectedEarnings);
       }
     }
 
@@ -209,6 +211,8 @@ export class AmazonFlexSlotGrabber {
       throw error;
     }
 
+    let noSlotCount = 0;
+
     while (this.isRunning) {
       try {
         console.log(
@@ -226,13 +230,12 @@ export class AmazonFlexSlotGrabber {
         await sleep(500);
         console.log(`${getCurrentTimeMMSS()}, slept 500ms after refresh`);
 
-
-
         console.log(`${getCurrentTimeMMSS()}, checking for slots...`);
         const slotFound = await this.checkForSlot();
         console.log(`${getCurrentTimeMMSS()}, slot found: ${slotFound}, isRunning: ${this.isRunning}`);
 
         if (slotFound) {
+          noSlotCount = 0;
           console.log(`${getCurrentTimeMMSS()}, calling grabSlot()...`);
           const success = await this.grabSlot();
           console.log(`${getCurrentTimeMMSS()}, grabSlot returned: ${success}`);
@@ -241,6 +244,12 @@ export class AmazonFlexSlotGrabber {
             console.log("🎉 Slot successfully scheduled! Stopping...");
             this.stop();
             break;
+          }
+        } else {
+          noSlotCount++;
+          const interval = this.config.justForYouCheckInterval ?? 0;
+          if (interval > 0 && noSlotCount % interval === 0) {
+            await this.checkJustForYou();
           }
         }
 
@@ -258,6 +267,27 @@ export class AmazonFlexSlotGrabber {
     }
 
     console.log(`${getCurrentTimeMMSS()}, exited main loop, isRunning: ${this.isRunning}`);
+  }
+
+  private async checkJustForYou(): Promise<void> {
+    const area = this.config.justForYouArea;
+    if (!area?.width || !area?.height) return;
+    try {
+      const screenshot = await ScreenshotService.takeRegionScreenshot(area.x, area.y, area.width, area.height);
+      const text = await this.ocrService.detectText(screenshot);
+      console.log(`${getCurrentTimeMMSS()}, [justForYou] OCR: "${text.trim().replace(/\n/g, ' ')}"`);
+      if (text.toLowerCase().includes('just for you')) {
+        this.emitAction('scanning', 'Just for you detected — declining...');
+        clickPosition(this.config.justForYouSlotX, this.config.justForYouSlotY);
+        await sleep(this.config.detailPageLoadMs);
+        clickPosition(this.config.justForYouDeclineX, this.config.justForYouDeclineY);
+        await sleep(this.config.detailPageLoadMs);
+        clickPosition(this.config.justForYouConfirmDeclineX, this.config.justForYouConfirmDeclineY);
+        await sleep(this.config.detailPageLoadMs);
+      }
+    } catch (err) {
+      console.error(`${getCurrentTimeMMSS()}, [justForYou] error:`, err);
+    }
   }
 
   stop(): void {

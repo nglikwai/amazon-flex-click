@@ -9,34 +9,32 @@ interface Props {
 
 export default function SettingsFooter({ mouseX, mouseY, onCancel, onSave }: Props) {
   return (
-    <footer className="bg-gh-bg-secondary px-6 py-4 border-t border-gh-border">
-      <div className="flex gap-4 justify-center items-center">
-        <div className="flex-1 flex flex-col gap-1 px-4 py-2 bg-gh-bg-tertiary border border-gh-border rounded-lg mr-4">
-          <div className="text-xs font-semibold text-gh-text-muted uppercase tracking-wider">Mouse Position</div>
-          <div className="flex gap-4 items-center">
-            <span className="text-sm text-gh-text-secondary">X:</span>
-            <span className="text-lg font-bold font-mono text-gh-accent min-w-[60px]">{mouseX}</span>
-            <span className="text-sm text-gh-text-secondary">Y:</span>
-            <span className="text-lg font-bold font-mono text-gh-accent min-w-[60px]">{mouseY}</span>
-          </div>
+    <footer className="sticky bottom-0 z-10 backdrop-blur-md bg-gh-bg/60 border-t border-gh-border/50 px-6 py-3">
+      <div className="flex items-center gap-4">
+        {/* Mouse position */}
+        <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-gh-bg-tertiary/60 border border-gh-border/50 font-mono text-xs">
+          <span className="text-gh-text-muted">XY</span>
+          <span className="text-gh-accent tabular-nums">{mouseX}</span>
+          <span className="text-gh-border">·</span>
+          <span className="text-gh-accent tabular-nums">{mouseY}</span>
         </div>
 
-        <div className="flex gap-3">
-          <button
-            type="button"
-            className="px-5 py-2.5 bg-gh-bg-tertiary border border-gh-border text-gh-text rounded-lg font-medium hover:bg-gh-border transition-colors"
-            onClick={onCancel}
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            className="px-5 py-2.5 bg-gh-accent hover:bg-gh-accent-emphasis text-white rounded-lg font-medium transition-colors"
-            onClick={onSave}
-          >
-            Save Settings
-          </button>
-        </div>
+        <div className="flex-1" />
+
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 text-sm text-gh-text-secondary hover:text-gh-text bg-gh-bg-tertiary/60 hover:bg-gh-bg-tertiary border border-gh-border/60 rounded-lg transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={onSave}
+          className="px-4 py-2 text-sm font-medium text-white bg-gh-accent/90 hover:bg-gh-accent border border-gh-accent/40 rounded-lg transition-all hover:glow-accent"
+        >
+          Save
+        </button>
       </div>
     </footer>
   );

@@ -1,11 +1,11 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import Header from './components/Header';
 import StatusView from './components/StatusView';
 import SettingsView, { SettingsViewRef } from './components/SettingsView';
 import StatusFooter from './components/StatusFooter';
 import SettingsFooter from './components/SettingsFooter';
 import { useBot } from './hooks/useBot';
-import './styles.css';
+import './styles.css'; // eslint-disable-line
 
 type ViewType = 'status' | 'settings';
 

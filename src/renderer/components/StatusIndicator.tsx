@@ -2,42 +2,41 @@ import React from 'react';
 
 type BotStatus = 'stopped' | 'running' | 'success' | 'error';
 
-interface StatusIndicatorProps {
-  status: BotStatus;
-}
+const StatusIndicator: React.FC<{ status: BotStatus }> = ({ status }) => {
+  if (status === 'running') {
+    return (
+      <div className="relative w-14 h-14 shrink-0 flex items-center justify-center">
+        <div className="absolute inset-0 rounded-full border-2 border-gh-success/20 animate-spin-slow" />
+        <div className="absolute inset-1 rounded-full border border-gh-success/40" />
+        <div className="w-4 h-4 rounded-full bg-gh-success animate-pulse-glow" />
+      </div>
+    );
+  }
 
-const StatusIndicator: React.FC<StatusIndicatorProps> = ({ status }) => {
-  const getStyles = () => {
-    switch (status) {
-      case 'running':
-        return 'bg-gh-success/20 text-gh-success animate-pulse-glow';
-      case 'success':
-        return 'bg-gh-success/20 text-gh-success';
-      case 'error':
-        return 'bg-gh-danger/20 text-gh-danger';
-      default:
-        return 'bg-gh-border/50 text-gh-text-secondary';
-    }
-  };
+  if (status === 'success') {
+    return (
+      <div className="w-14 h-14 shrink-0 rounded-full bg-gh-success/10 border border-gh-success/30 flex items-center justify-center glow-success">
+        <svg className="w-7 h-7 text-gh-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 6L9 17l-5-5" />
+        </svg>
+      </div>
+    );
+  }
 
-  const getIcon = () => {
-    switch (status) {
-      case 'running':
-        return <circle cx="12" cy="12" r="10" fill="currentColor"/>;
-      case 'success':
-        return <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" fill="none" strokeWidth="2"/>;
-      case 'error':
-        return <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" fill="none" strokeWidth="2"/>;
-      default:
-        return <circle cx="12" cy="12" r="10" fill="currentColor"/>;
-    }
-  };
+  if (status === 'error') {
+    return (
+      <div className="w-14 h-14 shrink-0 rounded-full bg-gh-danger/10 border border-gh-danger/30 flex items-center justify-center">
+        <svg className="w-7 h-7 text-gh-danger" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+          <path d="M12 8v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+        </svg>
+      </div>
+    );
+  }
 
+  // stopped
   return (
-    <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${getStyles()}`}>
-      <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-        {getIcon()}
-      </svg>
+    <div className="w-14 h-14 shrink-0 rounded-full bg-gh-bg-tertiary border border-gh-border flex items-center justify-center">
+      <div className="w-3 h-3 rounded-full bg-gh-text-muted" />
     </div>
   );
 };

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flex Slotter — Automated Amazon Flex Slot Grabber</title>
+  <meta name="description" content="Flex Slotter automatically finds and grabs Amazon Flex delivery slots that meet your earnings requirements. macOS native app." />
+  <meta property="og:title" content="Flex Slotter" />
+  <meta property="og:description" content="Automated Amazon Flex slot grabbing for macOS." />
+  <meta property="og:type" content="website" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ── Nav ──────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="#">
+      <!-- Icon -->
+      <svg width="28" height="28" viewBox="0 0 512 512" fill="none">
+        <rect width="512" height="512" rx="112" fill="url(#n-bg)"/>
+        <path d="M216 110 L176 260 H252 L200 402" stroke="url(#n-bolt)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="366" cy="150" r="72" fill="url(#n-badge)"/>
+        <text x="366" y="178" text-anchor="middle" fill="#0a0d14" font-size="80" font-weight="900" font-family="-apple-system,Arial,sans-serif">$</text>
+        <defs>
+          <linearGradient id="n-bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#0c1018"/><stop offset="100%" stop-color="#080c12"/>
+          </linearGradient>
+          <linearGradient id="n-bolt" x1="216" y1="110" x2="200" y2="402" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#4d9fff"/><stop offset="100%" stop-color="#2dde84"/>
+          </linearGradient>
+          <linearGradient id="n-badge" x1="294" y1="78" x2="438" y2="222" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#2dde84"/><stop offset="100%" stop-color="#1aad62"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <span>Flex Slotter</span>
+      <span class="nav-badge">v3</span>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#how-it-works">How it works</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ── Hero ─────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="container">
+
+    <div class="hero-eyebrow">
+      <span class="dot"></span>
+      macOS · Apple Silicon
+    </div>
+
+    <h1>Grab Flex slots<br/>while you sleep</h1>
+
+    <p class="hero-sub">
+      Flex Slotter monitors Amazon Flex and automatically grabs delivery slots
+      that match your earnings and hourly rate targets.
+    </p>
+
+    <div class="hero-cta">
+      <a href="https://amazon-slotter.s3.us-east-1.amazonaws.com/FlexSlotter-v3.dmg" download class="btn-primary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 15V3m0 12l-4-4m4 4l4-4M2 17l.621 2.485A2 2 0 004.561 21h14.878a2 2 0 001.94-1.515L22 17"/>
+        </svg>
+        Download for Mac
+      </a>
+      <a href="#how-it-works" class="btn-secondary">
+        See how it works →
+      </a>
+    </div>
+
+    <!-- App window mockup -->
+    <div class="hero-preview">
+      <div class="hero-preview-glow"></div>
+      <div class="app-window">
+        <div class="app-titlebar">
+          <div class="titlebar-dots">
+            <span class="dot-red"></span>
+            <span class="dot-yellow"></span>
+            <span class="dot-green"></span>
+          </div>
+          <div class="titlebar-title">Flex Slotter</div>
+        </div>
+        <div class="app-body">
+          <div class="app-status-row">
+            <div class="status-ring">
+              <div class="status-dot-inner"></div>
+            </div>
+            <div class="status-text">
+              <h3>Running</h3>
+              <p>Press ESC to stop</p>
+            </div>
+            <div class="target-badge">$60+</div>
+          </div>
+          <div class="app-log">
+            <div class="log-row">
+              <span class="log-dot bg-muted"></span>
+              <span class="log-msg c-muted">Refreshed</span>
+              <span class="log-time">14:22:01</span>
+            </div>
+            <div class="log-row">
+              <span class="log-dot bg-muted"></span>
+              <span class="log-msg c-muted">Refreshed <span style="color:var(--text-3)">×12</span></span>
+              <span class="log-time">14:22:08</span>
+            </div>
+            <div class="log-row">
+              <span class="log-dot bg-warning"></span>
+              <span class="log-msg c-warning">Detected $72.00 / 4.0h = $18.00/hr</span>
+              <span class="log-time">14:22:09</span>
+            </div>
+            <div class="log-row">
+              <span class="log-dot bg-warning"></span>
+              <span class="log-msg c-warning">Grabbing $72.00 slot...</span>
+              <span class="log-time">14:22:09</span>
+            </div>
+            <div class="log-row">
+              <span class="log-dot bg-success"></span>
+              <span class="log-msg c-success">Scheduled $72.00! / 4.0h = $18.00/hr</span>
+              <span class="log-time">14:22:11</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── Stats ─────────────────────────────────────────────── -->
+<div class="container">
+  <div class="stats">
+    <div class="stat-item">
+      <div class="stat-val">1.5s</div>
+      <div class="stat-label">Minimum refresh</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">OCR</div>
+      <div class="stat-label">Earnings detection</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">$/hr</div>
+      <div class="stat-label">Hourly rate filter</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">✉</div>
+      <div class="stat-label">Email on success</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Features ──────────────────────────────────────────── -->
+<section class="section" id="features">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Features</div>
+      <h2 class="section-title">Everything you need to<br/>win the refresh game</h2>
+      <p class="section-sub">Flex Slotter is purpose-built for speed, accuracy, and control — so you only grab slots worth your time.</p>
+    </div>
+
+    <div class="features-grid">
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(77,159,255,.1)">⚡</div>
+        <h3>Lightning-fast refresh</h3>
+        <p>Configurable down to 1.5 s. Flex Slotter reacts the moment a slot appears — before any human can.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(45,222,132,.1)">💰</div>
+        <h3>Smart earnings filter</h3>
+        <p>Set a minimum and maximum earnings threshold. Only slots within your range will be grabbed.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(255,170,0,.1)">⏱</div>
+        <h3>Hourly rate filter</h3>
+        <p>OCR reads the working hours from the screen and computes the average $/hr. Skip slots that don't pay enough per hour.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(77,159,255,.1)">📸</div>
+        <h3>Auto screenshot</h3>
+        <p>Every scan saves a debug screenshot next to your config file, so you can diagnose OCR issues at any time.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(45,222,132,.1)">✉️</div>
+        <h3>Email notification</h3>
+        <p>Get an instant email with a screenshot of the grabbed slot the moment Flex Slotter books a delivery block for you.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(255,71,87,.1)">🎯</div>
+        <h3>Pixel-perfect targeting</h3>
+        <p>Pick capture areas and button positions with a visual picker. No config files, no guessing coordinates.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── How it works ───────────────────────────────────────── -->
+<section class="section" id="how-it-works" style="border-top:1px solid var(--border)">
+  <div class="container">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:start">
+
+      <div>
+        <div class="section-label">How it works</div>
+        <h2 class="section-title">Set it and forget it</h2>
+        <p class="section-sub">Configure once, then let Flex Slotter run in the background while you do anything else.</p>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <div class="step-body">
+            <h3>Configure your targets</h3>
+            <p>Use the visual picker to mark the earnings region, time region, and button positions on your screen. Set your minimum earnings and hourly rate.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <div class="step-body">
+            <h3>Hit Start</h3>
+            <p>Flex Slotter begins refreshing the Amazon Flex app at your chosen interval, scanning for new slots via OCR.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <div class="step-body">
+            <h3>Slot detected &amp; grabbed</h3>
+            <p>When a matching slot appears, the bot clicks through and books it — faster than any human can react.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">04</div>
+          <div class="step-body">
+            <h3>You get notified</h3>
+            <p>An email lands in your inbox with the earnings details and a screenshot of the booked slot. Bot stops automatically.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ── Footer ─────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-inner">
+    <p>© 2025 Flex Slotter. Not affiliated with Amazon.</p>
+    <div class="footer-links">
+      <a href="#">Privacy</a>
+      <a href="#">GitHub</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
